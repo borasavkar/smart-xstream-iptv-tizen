@@ -1,0 +1,50 @@
+# Tizen TV web project descriptor — read by the "Tizen TV" VS Code extension.
+# `npm run build` copies this into dist/ next to config.xml / index.html.
+# Run the extension's Build / Package / Install / Run commands on the dist/ folder.
+
+# Project type [web_app, test_runner]
+project_type: web_app
+
+# Default profile, Tizen API version (4.0 ≈ 2018+ Samsung TVs → broad reach)
+profile: tv-samsung
+api_version: "4.0"
+
+# Build type [Debug / Release / Test]
+build_type: Debug
+
+# Output name for application
+output_name: SmartXtream
+
+# Output path for build
+output_path: ""
+
+# Enable size optimization of wgt for web workspace
+opt: false
+
+# Signing profile for Tizen package signing
+# "" = active profile · "." = default profile · or a named profile
+signing_profile: ""
+
+# list of certs in web project (.trust-anchor)
+trust_anchor: []
+
+# extra files/resources to include in the package
+files:
+  - app.js
+  - styles.css
+  - icon.png
+
+# files to exclude based on matched patterns
+excludes:
+  - Build/*
+  - Debug/*
+  - Release/*
+  - Test/*
+  - \.buildResult/.*
+  - \.project
+  - \.tproject
+  - \.wgt
+  - tizen_web_project.yaml
+
+# project dependencies
+deps: []

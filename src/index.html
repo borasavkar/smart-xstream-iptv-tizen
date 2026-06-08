@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1920, height=1080">
+  <title>Smart Xtream</title>
+  <link rel="stylesheet" href="styles.css">
+  <!-- Samsung TV Web Device API. Resolves on real TV; 404 in a plain browser is harmless. -->
+  <script src="$WEBAPIS/webapis/webapis.js"></script>
+</head>
+<body>
+  <!-- Shared AVPlay surface + HTML5 fallback (used by the player screens). -->
+  <object id="av-player" type="application/avplayer"></object>
+  <video id="av-fallback" playsinline></video>
+
+  <!-- Screens mount here. -->
+  <div id="root"></div>
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

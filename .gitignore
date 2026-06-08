@@ -1,0 +1,15 @@
+node_modules/
+dist/
+*.wgt
+*.log
+.DS_Store
+
+# Tizen build output (from the VS Code Tizen extension)
+Debug/
+Build/
+Release/
+Test/
+.buildResult/
+.sign/
+.tproject
+.project

@@ -1,0 +1,402 @@
+// Localized strings, ported from the Android app's res/values/strings.xml.
+// Starts with Turkish; structured so more languages can be added later
+// (the Android app ships ar/de/en/es/fr/it/nl/pl/pt/ru translations to reuse).
+
+type Dict = Record<string, string>;
+
+const tr: Dict = {
+  app_name: 'Smart Xtream AI: IPTV Player',
+  brand: 'Smart Xtream',
+
+  // intro
+  intro_main_title: 'Geleceğin TV Deneyimi',
+  intro_sub_title: 'Yapay zeka destekli Smart Xtream ile tanışın. Sadece bir oynatıcı değil, bir teknoloji.',
+  feat_ai_stability: 'Yapay Zeka Destekli Stabilite',
+  feat_4k_speed: 'Ultra Hızlı 4K Akış',
+  feat_no_buffer: 'Donmayan Canlı Maç Keyfi',
+  btn_start_premium: 'HEMEN BAŞLA ve KEŞFET',
+
+  // dashboard
+  title_live: 'Canlı',
+  title_movies: 'Filmler',
+  title_series: 'Diziler',
+  banner_add_profile: 'İçerikleri izlemek için lütfen kendi profilinizi ekleyin',
+  header_continue_watching: 'İzlemeye Devam Et',
+  header_recommendations_movies: 'Film Önerileri',
+  header_recommendations_series: 'Dizi Önerileri',
+  header_latest: 'Son Eklenenler (Yeni Çıkanlar)',
+  my_favorites: 'Favorilerim',
+  title_latest: 'Son Eklenenler',
+
+  // connection status
+  status_connected: 'Bağlandı',
+  status_connecting: 'Bağlanıyor…',
+  status_not_connected: 'Bağlı Değil',
+  status_login_error: 'Giriş Hatası',
+  status_server_error: 'Sunucu Yok',
+  status_no_profile: 'Profil Yok',
+  status_unlimited: 'Süresiz',
+  status_expired: 'Süresi Dolmuş',
+  status_premium: '♛ PREMIUM',
+
+  // profiles
+  btn_profile: 'Profil',
+  title_select_profile: 'Profil Seçin',
+  title_add_profile: 'Profil Ekle',
+  title_edit_profile: 'Profili Düzenle',
+  btn_add_new: 'Profil Ekle',
+  btn_manage: 'Yönet',
+  btn_save: 'Profili Kaydet',
+  btn_update: 'Profili Güncelle',
+  btn_cancel: 'İptal',
+  btn_delete: 'Sil',
+  btn_confirm: 'Onayla (Sil)',
+  btn_yes: 'Evet',
+  btn_no: 'Hayır',
+  btn_back: 'Geri',
+  hint_profile_name: 'Profil Adı (Örn: Ev Sineması)',
+  hint_username: 'Kullanıcı Adı',
+  hint_password: 'Şifre',
+  hint_server_url: 'Sunucu URL (http://adres.com:port)',
+  load_demo_data: 'Demo Verilerini Yükle (İnceleyenler İçin)',
+  default_profile_name: 'Profil',
+  title_delete_profile: 'Profili Sil',
+  msg_confirm_delete_profile: 'Bu profil silinecek. Emin misiniz?',
+
+  // messages
+  msg_fill_all_fields: 'Lütfen tüm alanları doldurun',
+  msg_profile_saved: 'Profil Kaydedildi!',
+  msg_profile_updated: 'Profil güncellendi',
+  msg_profile_deleted: 'Profil Silindi',
+  msg_profile_switched: '%1$s profiline geçildi',
+  msg_select_profile: 'Lütfen önce bir profil seçin',
+  msg_loading: 'Yükleniyor…',
+  msg_connecting: 'Bağlantı kuruluyor, lütfen bekleyin…',
+  error_login_failed_check: 'Giriş başarısız: Bilgileri kontrol edin.',
+  error_network_connection: 'Ağ hatası: Sunucuya bağlanılamadı.',
+  error_invalid_url: 'Geçerli bir URL girin (http://…)',
+
+  // settings / misc
+  settings_title: 'Uygulama Ayarları',
+  settings_ui_language: 'Uygulama Dili',
+  language_title: 'Dil',
+  menu_refresh: '🔄 İçerikleri Yenile',
+  type_live: 'Canlı',
+  type_movie: 'Film',
+  type_series: 'Dizi',
+
+  // navigation / lists / detail (Phase 2)
+  hint_search_category: 'Kategori Ara…',
+  hint_search_channel: 'Kanal Ara…',
+  hint_search_movie: 'Film Ara…',
+  hint_search_series: 'Dizi Ara…',
+  category_all_movies: 'Tüm Filmler',
+  category_all_series: 'Tüm Diziler',
+  msg_no_channels_in_category: 'Bu kategoride kanal yok.',
+  msg_content_not_found: 'İçerik bulunamadı.',
+  watch_now: '▶  HEMEN İZLE',
+  label_rating: 'IMDB:',
+  label_cast: 'Oyuncular:',
+  label_director: 'Yönetmen:',
+  text_no_description: 'Bu içerik için açıklama bulunamadı.',
+  text_genre_default: 'Genel',
+  error_fetch_details: 'Detaylar alınamadı.',
+  header_episodes: 'BÖLÜMLER',
+  text_season: 'Sezon',
+  text_episode: 'Bölüm',
+
+  // player controls (Phase 3)
+  track_audio: 'Ses',
+  track_subtitle: 'Altyazı',
+  track_quality: 'Kalite',
+  option_off: 'Kapalı',
+  msg_no_options: 'Seçenek yok',
+  ch_prev: 'Önceki',
+  ch_next: 'Sonraki',
+  quality_auto: 'Otomatik',
+  subtitle_style: 'Altyazı Stili',
+  size_small: 'Küçük',
+  size_medium: 'Orta',
+  size_large: 'Büyük',
+  sub_bg: 'Arka Plan',
+  opt_on: 'Açık',
+  preferred_audio: 'Tercih Edilen Ses Dili',
+  preferred_subtitle: 'Tercih Edilen Altyazı Dili',
+  video_quality_pref: 'Görüntü Kalitesi',
+  menu_settings: 'Ayarlar',
+
+  // monetization (Phase 5)
+  open_premium_properties: 'Premium Özellikleri Açın',
+  tria_exp_text: 'Deneme süreniz doldu. Devam etmek için bir plan seçin.',
+  monthly_subscription: 'Aylık Abonelik',
+  annual_subscription_with_advantage: 'Yıllık Abonelik (Avantajlı)',
+  lifeTime_subscription: 'Ömür Boyu Erişim',
+  msg_purchase_success: 'Satın alma başarılı!',
+  msg_premium_active: 'Premium Aktif! Teşekkürler.',
+  msg_connecting_retry: 'Bağlantı kuruluyor, lütfen tekrar deneyin…',
+  msg_trial_active: 'Deneme: %1$d Gün Kaldı',
+  premium: 'Premium',
+
+  // dev
+  dev_player_test: '🔧 Oynatıcı Testi',
+  coming_phase2: '%1$s — Aşama 2’de gelecek',
+};
+
+const en: Dict = {
+  app_name: 'Smart Xtream AI: IPTV Player', brand: 'Smart Xtream',
+  intro_main_title: 'The Future of TV Experience',
+  intro_sub_title: "Meet the AI-powered Smart Xtream. Not just a player, it's a technology.",
+  feat_ai_stability: 'AI-Powered Stability', feat_4k_speed: 'Ultra Fast 4K Streaming', feat_no_buffer: 'Buffer-Free Live Sports',
+  btn_start_premium: 'START & DISCOVER NOW',
+  title_live: 'Live', title_movies: 'Movies', title_series: 'Series',
+  banner_add_profile: 'Please add your own profile to watch content',
+  header_continue_watching: 'Continue Watching', header_recommendations_movies: 'Movie Recommendations',
+  header_recommendations_series: 'Series Recommendations', header_latest: 'Recently Added (New Releases)',
+  my_favorites: 'My Favorites', title_latest: 'Recently Added',
+  status_connected: 'Connected', status_connecting: 'Connecting…', status_not_connected: 'Not Connected',
+  status_login_error: 'Login Error', status_server_error: 'No Server', status_no_profile: 'No Profile',
+  status_unlimited: 'Unlimited', status_expired: 'Expired', status_premium: '♛ PREMIUM',
+  btn_profile: 'Profile', title_select_profile: 'Select Profile', title_add_profile: 'Add Profile', title_edit_profile: 'Edit Profile',
+  btn_add_new: 'Add Profile', btn_manage: 'Manage', btn_save: 'Save Profile', btn_update: 'Update Profile',
+  btn_cancel: 'Cancel', btn_delete: 'Delete', btn_confirm: 'Confirm (Delete)', btn_yes: 'Yes', btn_no: 'No', btn_back: 'Back',
+  hint_profile_name: 'Profile Name (e.g., Home Cinema)', hint_username: 'Username', hint_password: 'Password',
+  hint_server_url: 'Server URL (http://address.com:port)',
+  load_demo_data: 'Load Demo Data (For Reviewers)', default_profile_name: 'Profile',
+  title_delete_profile: 'Delete Profile', msg_confirm_delete_profile: 'This profile will be deleted. Are you sure?',
+  msg_fill_all_fields: 'Please fill in all fields', msg_profile_saved: 'Profile Saved!', msg_profile_updated: 'Profile updated',
+  msg_profile_deleted: 'Profile Deleted', msg_profile_switched: 'Switched to profile: %1$s', msg_select_profile: 'Please select a profile first',
+  msg_loading: 'Loading…', msg_connecting: 'Connecting, please wait…',
+  error_login_failed_check: 'Login failed: Check your credentials.', error_network_connection: 'Network error: Could not connect to server.',
+  error_invalid_url: 'Enter a valid URL (http://…)', settings_title: 'App Settings', settings_ui_language: 'App Language',
+  language_title: 'Language', menu_refresh: '🔄 Refresh Content',
+  type_live: 'Live', type_movie: 'Movie', type_series: 'Series',
+  hint_search_category: 'Search Category…', hint_search_channel: 'Search Channel…', hint_search_movie: 'Search Movie…', hint_search_series: 'Search Series…',
+  category_all_movies: 'All Movies', category_all_series: 'All Series',
+  msg_no_channels_in_category: 'No channels in this category.', msg_content_not_found: 'Content not found.',
+  watch_now: '▶  WATCH NOW', label_rating: 'IMDB:', label_cast: 'Cast:', label_director: 'Director:',
+  text_no_description: 'No description available for this content.', text_genre_default: 'General', error_fetch_details: 'Details could not be loaded.',
+  header_episodes: 'EPISODES', text_season: 'Season', text_episode: 'Episode',
+  track_audio: 'Audio', track_subtitle: 'Subtitle', track_quality: 'Quality', option_off: 'Off', msg_no_options: 'No options',
+  ch_prev: 'Previous', ch_next: 'Next',
+  open_premium_properties: 'Unlock Premium Features', tria_exp_text: 'Your trial has expired. Choose a plan to continue.',
+  monthly_subscription: 'Monthly Subscription', annual_subscription_with_advantage: 'Yearly Subscription (Best Value)',
+  lifeTime_subscription: 'Lifetime Access', msg_purchase_success: 'Purchase successful!', msg_premium_active: 'Premium Active! Thank you.',
+  msg_connecting_retry: 'Connecting, please try again…', msg_trial_active: 'Trial: %1$d Days Left', premium: 'Premium',
+  quality_auto: 'Auto', subtitle_style: 'Subtitle Style', size_small: 'Small', size_medium: 'Medium', size_large: 'Large',
+  sub_bg: 'Background', opt_on: 'On', preferred_audio: 'Preferred Audio Language', preferred_subtitle: 'Preferred Subtitle Language', video_quality_pref: 'Video Quality', menu_settings: 'Settings',
+  dev_player_test: '🔧 Player Test', coming_phase2: '%1$s — coming soon',
+};
+
+const de: Dict = {
+  title_live: 'Live', title_movies: 'Filme', title_series: 'Serien', my_favorites: 'Favoriten', header_continue_watching: 'Weiterschauen',
+  header_recommendations_movies: 'Filmempfehlungen', header_recommendations_series: 'Serienempfehlungen', header_latest: 'Neu hinzugefügt',
+  banner_add_profile: 'Bitte fügen Sie Ihr eigenes Profil hinzu, um Inhalte anzusehen',
+  status_connected: 'Verbunden', status_connecting: 'Verbinden…', status_login_error: 'Anmeldefehler', status_server_error: 'Kein Server',
+  status_unlimited: 'Unbegrenzt', status_premium: '♛ PREMIUM',
+  btn_save: 'Profil speichern', btn_cancel: 'Abbrechen', btn_add_new: 'Profil hinzufügen', btn_profile: 'Profil', btn_back: 'Zurück',
+  btn_delete: 'Löschen', watch_now: '▶  JETZT ANSEHEN', load_demo_data: 'Demodaten laden (für Prüfer)',
+  title_select_profile: 'Profil auswählen', title_add_profile: 'Profil hinzufügen', hint_profile_name: 'Profilname (z. B. Heimkino)',
+  hint_username: 'Benutzername', hint_password: 'Passwort', hint_server_url: 'Server-URL (http://adresse.com:port)',
+  intro_main_title: 'Die Zukunft des TV-Erlebnisses', intro_sub_title: 'Lernen Sie das KI-gestützte Smart Xtream kennen. Nicht nur ein Player, sondern Technologie.',
+  feat_ai_stability: 'KI-gestützte Stabilität', feat_4k_speed: 'Ultraschnelles 4K-Streaming', feat_no_buffer: 'Pufferfreier Live-Sport', btn_start_premium: 'JETZT STARTEN & ENTDECKEN',
+  hint_search_movie: 'Film suchen…', category_all_movies: 'Alle Filme', header_episodes: 'FOLGEN', text_season: 'Staffel', text_episode: 'Folge',
+  text_no_description: 'Keine Beschreibung verfügbar.', msg_content_not_found: 'Kein Inhalt gefunden.', label_cast: 'Besetzung:', label_director: 'Regie:',
+  track_audio: 'Ton', track_subtitle: 'Untertitel', track_quality: 'Qualität', option_off: 'Aus', ch_prev: 'Zurück', ch_next: 'Weiter',
+  open_premium_properties: 'Premium-Funktionen freischalten', tria_exp_text: 'Ihre Testphase ist abgelaufen. Wählen Sie einen Tarif.',
+  monthly_subscription: 'Monatsabo', annual_subscription_with_advantage: 'Jahresabo (Bestpreis)', lifeTime_subscription: 'Lebenslanger Zugang',
+  msg_premium_active: 'Premium aktiv! Danke.', msg_trial_active: 'Test: %1$d Tage übrig',
+  settings_title: 'App-Einstellungen', settings_ui_language: 'App-Sprache', language_title: 'Sprache',
+};
+
+const fr: Dict = {
+  title_live: 'En direct', title_movies: 'Films', title_series: 'Séries', my_favorites: 'Mes favoris', header_continue_watching: 'Reprendre',
+  header_recommendations_movies: 'Films recommandés', header_recommendations_series: 'Séries recommandées', header_latest: 'Ajoutés récemment',
+  banner_add_profile: 'Veuillez ajouter votre propre profil pour regarder du contenu',
+  status_connected: 'Connecté', status_connecting: 'Connexion…', status_login_error: 'Erreur de connexion', status_server_error: 'Aucun serveur',
+  status_unlimited: 'Illimité', status_premium: '♛ PREMIUM',
+  btn_save: 'Enregistrer le profil', btn_cancel: 'Annuler', btn_add_new: 'Ajouter un profil', btn_profile: 'Profil', btn_back: 'Retour',
+  btn_delete: 'Supprimer', watch_now: '▶  REGARDER', load_demo_data: 'Charger les données démo (évaluateurs)',
+  title_select_profile: 'Choisir un profil', title_add_profile: 'Ajouter un profil', hint_profile_name: 'Nom du profil (ex. : Home cinéma)',
+  hint_username: "Nom d'utilisateur", hint_password: 'Mot de passe', hint_server_url: 'URL du serveur (http://adresse.com:port)',
+  intro_main_title: "L'avenir de l'expérience TV", intro_sub_title: "Découvrez Smart Xtream, propulsé par l'IA. Pas seulement un lecteur, une technologie.",
+  feat_ai_stability: 'Stabilité par IA', feat_4k_speed: 'Streaming 4K ultra-rapide', feat_no_buffer: 'Sport en direct sans coupure', btn_start_premium: 'COMMENCER ET DÉCOUVRIR',
+  hint_search_movie: 'Rechercher un film…', category_all_movies: 'Tous les films', header_episodes: 'ÉPISODES', text_season: 'Saison', text_episode: 'Épisode',
+  text_no_description: 'Aucune description disponible.', msg_content_not_found: 'Aucun contenu trouvé.', label_cast: 'Distribution :', label_director: 'Réalisateur :',
+  track_audio: 'Audio', track_subtitle: 'Sous-titres', track_quality: 'Qualité', option_off: 'Désactivé', ch_prev: 'Précédent', ch_next: 'Suivant',
+  open_premium_properties: 'Débloquer les fonctions Premium', tria_exp_text: 'Votre essai a expiré. Choisissez un forfait.',
+  monthly_subscription: 'Abonnement mensuel', annual_subscription_with_advantage: 'Abonnement annuel (meilleur prix)', lifeTime_subscription: 'Accès à vie',
+  msg_premium_active: 'Premium activé ! Merci.', msg_trial_active: 'Essai : %1$d jours restants',
+  settings_title: "Paramètres de l'app", settings_ui_language: "Langue de l'app", language_title: 'Langue',
+};
+
+const es: Dict = {
+  title_live: 'En vivo', title_movies: 'Películas', title_series: 'Series', my_favorites: 'Mis favoritos', header_continue_watching: 'Seguir viendo',
+  header_recommendations_movies: 'Películas recomendadas', header_recommendations_series: 'Series recomendadas', header_latest: 'Añadido recientemente',
+  banner_add_profile: 'Añade tu propio perfil para ver contenido',
+  status_connected: 'Conectado', status_connecting: 'Conectando…', status_login_error: 'Error de inicio de sesión', status_server_error: 'Sin servidor',
+  status_unlimited: 'Ilimitado', status_premium: '♛ PREMIUM',
+  btn_save: 'Guardar perfil', btn_cancel: 'Cancelar', btn_add_new: 'Añadir perfil', btn_profile: 'Perfil', btn_back: 'Atrás',
+  btn_delete: 'Eliminar', watch_now: '▶  VER AHORA', load_demo_data: 'Cargar datos demo (revisores)',
+  title_select_profile: 'Seleccionar perfil', title_add_profile: 'Añadir perfil', hint_profile_name: 'Nombre del perfil (ej.: Cine en casa)',
+  hint_username: 'Usuario', hint_password: 'Contraseña', hint_server_url: 'URL del servidor (http://direccion.com:puerto)',
+  intro_main_title: 'El futuro de la experiencia de TV', intro_sub_title: 'Descubre Smart Xtream con IA. No solo un reproductor, una tecnología.',
+  feat_ai_stability: 'Estabilidad con IA', feat_4k_speed: 'Streaming 4K ultrarrápido', feat_no_buffer: 'Deportes en vivo sin cortes', btn_start_premium: 'EMPEZAR Y DESCUBRIR',
+  hint_search_movie: 'Buscar película…', category_all_movies: 'Todas las películas', header_episodes: 'EPISODIOS', text_season: 'Temporada', text_episode: 'Episodio',
+  text_no_description: 'No hay descripción disponible.', msg_content_not_found: 'No se encontró contenido.', label_cast: 'Reparto:', label_director: 'Director:',
+  track_audio: 'Audio', track_subtitle: 'Subtítulos', track_quality: 'Calidad', option_off: 'Desactivado', ch_prev: 'Anterior', ch_next: 'Siguiente',
+  open_premium_properties: 'Desbloquear funciones Premium', tria_exp_text: 'Tu prueba ha terminado. Elige un plan.',
+  monthly_subscription: 'Suscripción mensual', annual_subscription_with_advantage: 'Suscripción anual (mejor precio)', lifeTime_subscription: 'Acceso de por vida',
+  msg_premium_active: '¡Premium activo! Gracias.', msg_trial_active: 'Prueba: %1$d días restantes',
+  settings_title: 'Ajustes de la app', settings_ui_language: 'Idioma de la app', language_title: 'Idioma',
+};
+
+const it: Dict = {
+  title_live: 'Live', title_movies: 'Film', title_series: 'Serie', my_favorites: 'Preferiti', header_continue_watching: 'Continua a guardare',
+  header_recommendations_movies: 'Film consigliati', header_recommendations_series: 'Serie consigliate', header_latest: 'Aggiunti di recente',
+  banner_add_profile: 'Aggiungi il tuo profilo per guardare i contenuti',
+  status_connected: 'Connesso', status_connecting: 'Connessione…', status_login_error: 'Errore di accesso', status_server_error: 'Nessun server',
+  status_unlimited: 'Illimitato', status_premium: '♛ PREMIUM',
+  btn_save: 'Salva profilo', btn_cancel: 'Annulla', btn_add_new: 'Aggiungi profilo', btn_profile: 'Profilo', btn_back: 'Indietro',
+  btn_delete: 'Elimina', watch_now: '▶  GUARDA ORA', load_demo_data: 'Carica dati demo (revisori)',
+  title_select_profile: 'Seleziona profilo', title_add_profile: 'Aggiungi profilo', hint_profile_name: 'Nome profilo (es.: Home cinema)',
+  hint_username: 'Nome utente', hint_password: 'Password', hint_server_url: 'URL server (http://indirizzo.com:porta)',
+  intro_main_title: "Il futuro dell'esperienza TV", intro_sub_title: 'Scopri Smart Xtream con IA. Non solo un player, una tecnologia.',
+  feat_ai_stability: 'Stabilità con IA', feat_4k_speed: 'Streaming 4K velocissimo', feat_no_buffer: 'Sport in diretta senza buffer', btn_start_premium: 'INIZIA E SCOPRI',
+  hint_search_movie: 'Cerca film…', category_all_movies: 'Tutti i film', header_episodes: 'EPISODI', text_season: 'Stagione', text_episode: 'Episodio',
+  text_no_description: 'Nessuna descrizione disponibile.', msg_content_not_found: 'Nessun contenuto trovato.', label_cast: 'Cast:', label_director: 'Regia:',
+  track_audio: 'Audio', track_subtitle: 'Sottotitoli', track_quality: 'Qualità', option_off: 'Off', ch_prev: 'Precedente', ch_next: 'Successivo',
+  open_premium_properties: 'Sblocca le funzioni Premium', tria_exp_text: 'La prova è scaduta. Scegli un piano.',
+  monthly_subscription: 'Abbonamento mensile', annual_subscription_with_advantage: 'Abbonamento annuale (miglior prezzo)', lifeTime_subscription: 'Accesso a vita',
+  msg_premium_active: 'Premium attivo! Grazie.', msg_trial_active: 'Prova: %1$d giorni rimasti',
+  settings_title: 'Impostazioni app', settings_ui_language: "Lingua dell'app", language_title: 'Lingua',
+};
+
+const pt: Dict = {
+  title_live: 'Ao vivo', title_movies: 'Filmes', title_series: 'Séries', my_favorites: 'Meus favoritos', header_continue_watching: 'Continuar assistindo',
+  header_recommendations_movies: 'Filmes recomendados', header_recommendations_series: 'Séries recomendadas', header_latest: 'Adicionados recentemente',
+  banner_add_profile: 'Adicione seu próprio perfil para assistir',
+  status_connected: 'Conectado', status_connecting: 'Conectando…', status_login_error: 'Erro de login', status_server_error: 'Sem servidor',
+  status_unlimited: 'Ilimitado', status_premium: '♛ PREMIUM',
+  btn_save: 'Salvar perfil', btn_cancel: 'Cancelar', btn_add_new: 'Adicionar perfil', btn_profile: 'Perfil', btn_back: 'Voltar',
+  btn_delete: 'Excluir', watch_now: '▶  ASSISTIR', load_demo_data: 'Carregar dados demo (avaliadores)',
+  title_select_profile: 'Selecionar perfil', title_add_profile: 'Adicionar perfil', hint_profile_name: 'Nome do perfil (ex.: Home cinema)',
+  hint_username: 'Usuário', hint_password: 'Senha', hint_server_url: 'URL do servidor (http://endereco.com:porta)',
+  intro_main_title: 'O futuro da experiência de TV', intro_sub_title: 'Conheça o Smart Xtream com IA. Não é só um player, é tecnologia.',
+  feat_ai_stability: 'Estabilidade com IA', feat_4k_speed: 'Streaming 4K ultrarrápido', feat_no_buffer: 'Esportes ao vivo sem travar', btn_start_premium: 'COMEÇAR E DESCOBRIR',
+  hint_search_movie: 'Buscar filme…', category_all_movies: 'Todos os filmes', header_episodes: 'EPISÓDIOS', text_season: 'Temporada', text_episode: 'Episódio',
+  text_no_description: 'Nenhuma descrição disponível.', msg_content_not_found: 'Nenhum conteúdo encontrado.', label_cast: 'Elenco:', label_director: 'Diretor:',
+  track_audio: 'Áudio', track_subtitle: 'Legendas', track_quality: 'Qualidade', option_off: 'Desligado', ch_prev: 'Anterior', ch_next: 'Próximo',
+  open_premium_properties: 'Desbloquear recursos Premium', tria_exp_text: 'Seu teste expirou. Escolha um plano.',
+  monthly_subscription: 'Assinatura mensal', annual_subscription_with_advantage: 'Assinatura anual (melhor preço)', lifeTime_subscription: 'Acesso vitalício',
+  msg_premium_active: 'Premium ativo! Obrigado.', msg_trial_active: 'Teste: %1$d dias restantes',
+  settings_title: 'Configurações do app', settings_ui_language: 'Idioma do app', language_title: 'Idioma',
+};
+
+const nl: Dict = {
+  title_live: 'Live', title_movies: 'Films', title_series: 'Series', my_favorites: 'Mijn favorieten', header_continue_watching: 'Verder kijken',
+  header_recommendations_movies: 'Aanbevolen films', header_recommendations_series: 'Aanbevolen series', header_latest: 'Onlangs toegevoegd',
+  banner_add_profile: 'Voeg je eigen profiel toe om te kijken',
+  status_connected: 'Verbonden', status_connecting: 'Verbinden…', status_login_error: 'Inlogfout', status_server_error: 'Geen server',
+  status_unlimited: 'Onbeperkt', status_premium: '♛ PREMIUM',
+  btn_save: 'Profiel opslaan', btn_cancel: 'Annuleren', btn_add_new: 'Profiel toevoegen', btn_profile: 'Profiel', btn_back: 'Terug',
+  btn_delete: 'Verwijderen', watch_now: '▶  NU KIJKEN', load_demo_data: 'Demodata laden (voor beoordelaars)',
+  title_select_profile: 'Profiel kiezen', title_add_profile: 'Profiel toevoegen', hint_profile_name: 'Profielnaam (bijv. Thuisbioscoop)',
+  hint_username: 'Gebruikersnaam', hint_password: 'Wachtwoord', hint_server_url: 'Server-URL (http://adres.com:poort)',
+  intro_main_title: 'De toekomst van tv-beleving', intro_sub_title: 'Maak kennis met Smart Xtream met AI. Niet zomaar een speler, maar technologie.',
+  feat_ai_stability: 'AI-gestuurde stabiliteit', feat_4k_speed: 'Ultrasnelle 4K-streaming', feat_no_buffer: 'Buffervrij live sport', btn_start_premium: 'START EN ONTDEK',
+  hint_search_movie: 'Film zoeken…', category_all_movies: 'Alle films', header_episodes: 'AFLEVERINGEN', text_season: 'Seizoen', text_episode: 'Aflevering',
+  text_no_description: 'Geen beschrijving beschikbaar.', msg_content_not_found: 'Geen inhoud gevonden.', label_cast: 'Cast:', label_director: 'Regie:',
+  track_audio: 'Audio', track_subtitle: 'Ondertiteling', track_quality: 'Kwaliteit', option_off: 'Uit', ch_prev: 'Vorige', ch_next: 'Volgende',
+  open_premium_properties: 'Premiumfuncties ontgrendelen', tria_exp_text: 'Je proefperiode is verlopen. Kies een abonnement.',
+  monthly_subscription: 'Maandabonnement', annual_subscription_with_advantage: 'Jaarabonnement (beste prijs)', lifeTime_subscription: 'Levenslange toegang',
+  msg_premium_active: 'Premium actief! Bedankt.', msg_trial_active: 'Proef: nog %1$d dagen',
+  settings_title: 'App-instellingen', settings_ui_language: 'App-taal', language_title: 'Taal',
+};
+
+const pl: Dict = {
+  title_live: 'Na żywo', title_movies: 'Filmy', title_series: 'Seriale', my_favorites: 'Ulubione', header_continue_watching: 'Oglądaj dalej',
+  header_recommendations_movies: 'Polecane filmy', header_recommendations_series: 'Polecane seriale', header_latest: 'Ostatnio dodane',
+  banner_add_profile: 'Dodaj własny profil, aby oglądać treści',
+  status_connected: 'Połączono', status_connecting: 'Łączenie…', status_login_error: 'Błąd logowania', status_server_error: 'Brak serwera',
+  status_unlimited: 'Bez limitu', status_premium: '♛ PREMIUM',
+  btn_save: 'Zapisz profil', btn_cancel: 'Anuluj', btn_add_new: 'Dodaj profil', btn_profile: 'Profil', btn_back: 'Wstecz',
+  btn_delete: 'Usuń', watch_now: '▶  OGLĄDAJ', load_demo_data: 'Wczytaj dane demo (dla recenzentów)',
+  title_select_profile: 'Wybierz profil', title_add_profile: 'Dodaj profil', hint_profile_name: 'Nazwa profilu (np. Kino domowe)',
+  hint_username: 'Nazwa użytkownika', hint_password: 'Hasło', hint_server_url: 'Adres serwera (http://adres.com:port)',
+  intro_main_title: 'Przyszłość oglądania TV', intro_sub_title: 'Poznaj Smart Xtream z AI. To nie tylko odtwarzacz, to technologia.',
+  feat_ai_stability: 'Stabilność dzięki AI', feat_4k_speed: 'Superszybki streaming 4K', feat_no_buffer: 'Sport na żywo bez buforowania', btn_start_premium: 'ZACZNIJ I ODKRYWAJ',
+  hint_search_movie: 'Szukaj filmu…', category_all_movies: 'Wszystkie filmy', header_episodes: 'ODCINKI', text_season: 'Sezon', text_episode: 'Odcinek',
+  text_no_description: 'Brak opisu.', msg_content_not_found: 'Nie znaleziono treści.', label_cast: 'Obsada:', label_director: 'Reżyseria:',
+  track_audio: 'Dźwięk', track_subtitle: 'Napisy', track_quality: 'Jakość', option_off: 'Wył.', ch_prev: 'Poprzedni', ch_next: 'Następny',
+  open_premium_properties: 'Odblokuj funkcje Premium', tria_exp_text: 'Okres próbny wygasł. Wybierz plan.',
+  monthly_subscription: 'Subskrypcja miesięczna', annual_subscription_with_advantage: 'Subskrypcja roczna (najlepsza cena)', lifeTime_subscription: 'Dostęp dożywotni',
+  msg_premium_active: 'Premium aktywne! Dziękujemy.', msg_trial_active: 'Okres próbny: %1$d dni',
+  settings_title: 'Ustawienia aplikacji', settings_ui_language: 'Język aplikacji', language_title: 'Język',
+};
+
+const ru: Dict = {
+  title_live: 'Эфир', title_movies: 'Фильмы', title_series: 'Сериалы', my_favorites: 'Избранное', header_continue_watching: 'Продолжить просмотр',
+  header_recommendations_movies: 'Рекомендуемые фильмы', header_recommendations_series: 'Рекомендуемые сериалы', header_latest: 'Недавно добавленные',
+  banner_add_profile: 'Добавьте свой профиль, чтобы смотреть контент',
+  status_connected: 'Подключено', status_connecting: 'Подключение…', status_login_error: 'Ошибка входа', status_server_error: 'Нет сервера',
+  status_unlimited: 'Безлимит', status_premium: '♛ PREMIUM',
+  btn_save: 'Сохранить профиль', btn_cancel: 'Отмена', btn_add_new: 'Добавить профиль', btn_profile: 'Профиль', btn_back: 'Назад',
+  btn_delete: 'Удалить', watch_now: '▶  СМОТРЕТЬ', load_demo_data: 'Загрузить демоданные (для проверки)',
+  title_select_profile: 'Выбор профиля', title_add_profile: 'Добавить профиль', hint_profile_name: 'Имя профиля (напр., Домашний кинотеатр)',
+  hint_username: 'Имя пользователя', hint_password: 'Пароль', hint_server_url: 'URL сервера (http://адрес.com:порт)',
+  intro_main_title: 'Будущее ТВ', intro_sub_title: 'Знакомьтесь — Smart Xtream с ИИ. Не просто плеер, а технология.',
+  feat_ai_stability: 'Стабильность на основе ИИ', feat_4k_speed: 'Сверхбыстрый 4K-стриминг', feat_no_buffer: 'Спорт в прямом эфире без задержек', btn_start_premium: 'НАЧАТЬ И ОТКРЫТЬ',
+  hint_search_movie: 'Поиск фильма…', category_all_movies: 'Все фильмы', header_episodes: 'ЭПИЗОДЫ', text_season: 'Сезон', text_episode: 'Серия',
+  text_no_description: 'Описание недоступно.', msg_content_not_found: 'Контент не найден.', label_cast: 'В ролях:', label_director: 'Режиссёр:',
+  track_audio: 'Звук', track_subtitle: 'Субтитры', track_quality: 'Качество', option_off: 'Выкл.', ch_prev: 'Назад', ch_next: 'Вперёд',
+  open_premium_properties: 'Открыть Premium-функции', tria_exp_text: 'Пробный период истёк. Выберите план.',
+  monthly_subscription: 'Месячная подписка', annual_subscription_with_advantage: 'Годовая подписка (выгодно)', lifeTime_subscription: 'Пожизненный доступ',
+  msg_premium_active: 'Premium активен! Спасибо.', msg_trial_active: 'Пробный период: осталось %1$d дн.',
+  settings_title: 'Настройки приложения', settings_ui_language: 'Язык приложения', language_title: 'Язык',
+};
+
+const ar: Dict = {
+  title_live: 'مباشر', title_movies: 'أفلام', title_series: 'مسلسلات', my_favorites: 'مفضلتي', header_continue_watching: 'متابعة المشاهدة',
+  header_recommendations_movies: 'أفلام مقترحة', header_recommendations_series: 'مسلسلات مقترحة', header_latest: 'أُضيفت حديثًا',
+  banner_add_profile: 'يرجى إضافة ملفك الشخصي لمشاهدة المحتوى',
+  status_connected: 'متصل', status_connecting: 'جارٍ الاتصال…', status_login_error: 'خطأ في تسجيل الدخول', status_server_error: 'لا يوجد خادم',
+  status_unlimited: 'غير محدود', status_premium: '♛ PREMIUM',
+  btn_save: 'حفظ الملف', btn_cancel: 'إلغاء', btn_add_new: 'إضافة ملف', btn_profile: 'الملف الشخصي', btn_back: 'رجوع',
+  btn_delete: 'حذف', watch_now: '▶  شاهد الآن', load_demo_data: 'تحميل البيانات التجريبية (للمراجعين)',
+  title_select_profile: 'اختر الملف', title_add_profile: 'إضافة ملف', hint_profile_name: 'اسم الملف (مثال: سينما المنزل)',
+  hint_username: 'اسم المستخدم', hint_password: 'كلمة المرور', hint_server_url: 'رابط الخادم (http://address.com:port)',
+  intro_main_title: 'مستقبل تجربة التلفزيون', intro_sub_title: 'تعرّف على Smart Xtream المدعوم بالذكاء الاصطناعي. ليس مجرد مشغّل، بل تقنية.',
+  feat_ai_stability: 'استقرار مدعوم بالذكاء الاصطناعي', feat_4k_speed: 'بث 4K فائق السرعة', feat_no_buffer: 'رياضة مباشرة بلا تقطيع', btn_start_premium: 'ابدأ واكتشف',
+  hint_search_movie: 'ابحث عن فيلم…', category_all_movies: 'كل الأفلام', header_episodes: 'الحلقات', text_season: 'الموسم', text_episode: 'الحلقة',
+  text_no_description: 'لا يوجد وصف متاح.', msg_content_not_found: 'لم يُعثر على محتوى.', label_cast: 'البطولة:', label_director: 'الإخراج:',
+  track_audio: 'الصوت', track_subtitle: 'الترجمة', track_quality: 'الجودة', option_off: 'إيقاف', ch_prev: 'السابق', ch_next: 'التالي',
+  open_premium_properties: 'فتح ميزات Premium', tria_exp_text: 'انتهت فترتك التجريبية. اختر خطة.',
+  monthly_subscription: 'اشتراك شهري', annual_subscription_with_advantage: 'اشتراك سنوي (أفضل قيمة)', lifeTime_subscription: 'وصول مدى الحياة',
+  msg_premium_active: 'Premium مفعّل! شكرًا.', msg_trial_active: 'تجريبي: %1$d يوم متبقٍ',
+  settings_title: 'إعدادات التطبيق', settings_ui_language: 'لغة التطبيق', language_title: 'اللغة',
+};
+
+const LANGS: Record<string, Dict> = { tr, en, de, fr, es, it, pt, nl, pl, ru, ar };
+
+/** Languages offered in the in-app selector. */
+export const languages: Array<{ code: string; name: string }> = [
+  { code: 'tr', name: 'Türkçe' }, { code: 'en', name: 'English' }, { code: 'de', name: 'Deutsch' },
+  { code: 'fr', name: 'Français' }, { code: 'es', name: 'Español' }, { code: 'it', name: 'Italiano' },
+  { code: 'pt', name: 'Português' }, { code: 'nl', name: 'Nederlands' }, { code: 'pl', name: 'Polski' },
+  { code: 'ru', name: 'Русский' }, { code: 'ar', name: 'العربية' },
+];
+
+let current = 'tr';
+
+export function setLanguage(lang: string): void { if (LANGS[lang]) current = lang; }
+
+export function t(key: string, ...args: Array<string | number>): string {
+  // selected language → English (universal fallback) → Turkish (source) → key
+  let s = LANGS[current]?.[key] ?? en[key] ?? tr[key] ?? key;
+  // positional: %1$s, %2$d …
+  s = s.replace(/%(\d+)\$[sd]/g, (_m, i: string) => String(args[Number(i) - 1] ?? ''));
+  // sequential: %s, %d
+  let idx = 0;
+  s = s.replace(/%[sd]/g, () => String(args[idx++] ?? ''));
+  return s;
+}

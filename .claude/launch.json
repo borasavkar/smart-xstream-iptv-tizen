@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "smart-xtream",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Tizen iptv Project/smart-xtream-tizen-claude/serve.mjs"],
+      "port": 8080
+    }
+  ]
+}
