@@ -7,7 +7,6 @@ import { setLanguage, languages } from './i18n/strings';
 import { introScreen } from './screens/intro';
 import { profilesScreen } from './screens/profiles';
 import { homeScreen } from './screens/home';
-import { playerTestScreen } from './screens/playertest';
 import { playerScreen } from './screens/player';
 import { liveCategoriesScreen } from './screens/livecategories';
 import { channelsScreen } from './screens/channels';
@@ -38,7 +37,6 @@ function boot(): void {
   router.register('intro', introScreen);
   router.register('profiles', profilesScreen);
   router.register('home', homeScreen);
-  router.register('playertest', playerTestScreen);
   router.register('player', playerScreen);
   router.register('livecategories', liveCategoriesScreen);
   router.register('channels', channelsScreen);

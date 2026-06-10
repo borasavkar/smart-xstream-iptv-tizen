@@ -67,19 +67,26 @@ export class Router {
     });
   }
 
+// Router sınıfı içindeki `handleKey` metodunu bul ve şu şekilde değiştir:
   private handleKey(e: KeyboardEvent): void {
-    // When a screen handles the key, stop the platform default (focus move / scroll).
     if (this.current?.onKey?.(e)) { e.preventDefault(); e.stopPropagation(); return; }
+
+    const ae = document.activeElement as HTMLElement | null;
+    const isInput = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA');
+
     switch (e.keyCode) {
-      case KEY.LEFT: moveFocus('left'); e.preventDefault(); break;
-      case KEY.RIGHT: moveFocus('right'); e.preventDefault(); break;
+      case KEY.LEFT:
+        if (isInput) return; // Metin kutusundayken harfler arası gezinebilmek için native akışa bırak
+        moveFocus('left'); e.preventDefault(); break;
+      case KEY.RIGHT:
+        if (isInput) return; // Metin kutusundayken harfler arası gezinebilmek için native akışa bırak
+        moveFocus('right'); e.preventDefault(); break;
       case KEY.UP: moveFocus('up'); e.preventDefault(); break;
       case KEY.DOWN: moveFocus('down'); e.preventDefault(); break;
       case KEY.ENTER: {
-        const a = document.activeElement as HTMLElement | null;
-        const tag = a?.tagName.toLowerCase();
-        if (a?.hasAttribute('data-focusable') && tag !== 'input' && tag !== 'select' && tag !== 'textarea') {
-          a.click();
+        const tag = ae?.tagName.toLowerCase();
+        if (ae?.hasAttribute('data-focusable') && tag !== 'input' && tag !== 'select' && tag !== 'textarea') {
+          ae.click();
           e.preventDefault();
         }
         break;

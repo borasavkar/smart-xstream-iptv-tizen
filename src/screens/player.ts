@@ -15,7 +15,7 @@ import { Settings } from '../storage/settings';
 import { Favorites, type StreamKind } from '../storage/favorites';
 import { History } from '../storage/history';
 import { t } from '../i18n/strings';
-import { KEY } from '../input/remote';
+import { KEY, moveFocus } from '../input/remote';
 import { nav } from '../app/nav';
 import type { Screen } from '../app/router';
 
@@ -42,9 +42,8 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const channels = p.channels ?? [];
   let index = p.index ?? 0;
 
-  // ---- top bar ----
+// ---- top bar ---- (Orijinal hali, dokunulmadı)
   const backBtn = el('button', { class: 'pc-iconbtn', focusable: true, html: ICONS.back(), onClick: exitPlayer });
-  const favBtn = el('button', { class: 'pc-iconbtn', focusable: true });
   const resEl = el('span', { class: 'pc-pill pc-res' });
   const speedEl = el('span', { class: 'pc-pill pc-speed' });
   const clockEl = el('span', { class: 'pc-pill pc-clock' });
@@ -52,34 +51,41 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const pcTop = el('div', { class: 'pc-top' }, [
     el('div', { class: 'pc-tl' }, [backBtn, epgEl]),
     el('div', { class: 'pc-tc' }, [resEl, speedEl]),
-    el('div', { class: 'pc-tr' }, [favBtn, clockEl]),
+    el('div', { class: 'pc-tr' }, [clockEl]), // Favori butonu buradan alındı
   ]);
 
-  // ---- transport ----
+  // ---- transport & actions ---- (Ortalanmış oynatma kontrolleri)
   const tbtn = (glyph: string, cls: string, onClick: () => void): HTMLElement => el('button', { class: 'tbtn ' + cls, focusable: true, text: glyph, onClick });
   const playBtn = el('button', { class: 'tbtn tbtn-play', focusable: true, text: '⏸', attrs: { 'data-initial-focus': '' }, onClick: toggle });
   const transport: HTMLElement[] = isLive
     ? [tbtn('⏮', 'tbtn-side', () => switchTo(index - 1)), playBtn, tbtn('⏭', 'tbtn-side', () => switchTo(index + 1))]
     : [tbtn('⏮', 'tbtn-side', () => seekRelative(-300000)), tbtn('⏪', 'tbtn-seek', () => seekRelative(-10000)), playBtn, tbtn('⏩', 'tbtn-seek', () => seekRelative(10000)), tbtn('⏭', 'tbtn-side', () => seekRelative(300000))];
-  const pcCenter = el('div', { class: 'pc-center' }, transport);
 
-  // ---- bottom ----
+  const favBtn = el('button', { class: 'pc-iconbtn', focusable: true });
+  const gearBtn = el('button', { class: 'pc-iconbtn pc-gear', focusable: true, html: ICONS.gear(), onClick: openSettingsMenu });
+
+  // ---- bottom (YouTube Style) ----
   const barFill = el('div', { class: 'bar-fill' });
   const curT = el('span', { class: 'prog-t', text: '0:00' });
   const durT = el('span', { class: 'prog-t', text: '0:00' });
-  const progress = el('div', { class: 'pc-prog' }, [curT, el('div', { class: 'prog-bar' }, [barFill]), durT]);
-  const gearBtn = el('button', { class: 'pc-iconbtn pc-gear', focusable: true, html: ICONS.gear(), onClick: openSettingsMenu });
-  const pcBottom = el('div', { class: 'pc-bottom' }, isLive ? [el('div', { class: 'pc-prog' }), gearBtn] : [progress, gearBtn]);
+  const progress = el('div', { class: 'pc-prog', focusable: true }, [curT, el('div', { class: 'prog-bar' }, [barFill]), durT]);
 
-  const controls = el('div', { class: 'player-controls' }, [pcTop, pcCenter, pcBottom]);
+  const pcControlsRow = el('div', { class: 'pc-controls-row' }, [
+    el('div', { class: 'pc-cr-left' }, [favBtn]),          // En solda Favori
+    el('div', { class: 'pc-cr-center' }, transport),       // Ortada Oynat/İleri/Geri
+    el('div', { class: 'pc-cr-right' }, [gearBtn]),        // En sağda Ayarlar
+  ]);
+
+  // Gezinme çubuğu üstte, oynatma kontrolleri altta olacak şekilde alt barı oluşturuyoruz
+  const pcBottom = el('div', { class: 'pc-bottom' }, isLive ? [el('div', { class: 'pc-prog' }), pcControlsRow] : [progress, pcControlsRow]);
+
+  const controls = el('div', { class: 'player-controls' }, [pcTop, pcBottom]);
   const menu = el('div', { class: 'player-menu' });
   const seekHud = el('div', { class: 'seek-hud' });
   const subtitle = el('div', { class: 'player-subtitle' });
   const status = el('div', { class: 'player-status-c' });
   const dbg = el('div', { class: 'pc-dbg' }); // temporary remote-key debug readout
   const root = el('div', { class: 'screen player-screen' }, [subtitle, seekHud, status, dbg, controls, menu]);
-
-  const focusables = [backBtn, ...transport, gearBtn, favBtn];
 
   // ---- state ----
   let paused = false, resumeMs = 0, resumed = false, lastSaved = 0;
@@ -160,14 +166,19 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   // ---- focus ----
   function setZone(list: HTMLElement[], initial?: HTMLElement): void { zone = list; zoneIdx = initial ? Math.max(0, list.indexOf(initial)) : 0; requestAnimationFrame(() => zone[zoneIdx]?.focus()); }
   function moveZone(d: number): void { if (!zone.length) return; zoneIdx = (zoneIdx + d + zone.length) % zone.length; zone[zoneIdx].focus(); }
-  function focusEl(node: HTMLElement): void { const i = zone.indexOf(node); if (i >= 0) { zoneIdx = i; node.focus(); } }
   function controlsVisible(): boolean { return controls.classList.contains('show'); }
   function showControls(): void {
-    controls.classList.add('show'); refreshHud(); updateProgress();
-    clearInterval(hudTimer); hudTimer = window.setInterval(refreshHud, 1000);
-    if (!menuOpen) setZone(focusables, playBtn);
-    resetHide();
+  controls.classList.add('show'); refreshHud(); updateProgress();
+  clearInterval(hudTimer); hudTimer = window.setInterval(refreshHud, 1000);
+  if (!menuOpen) {
+    const ae = document.activeElement as HTMLElement | null;
+    // Eğer odak halihazırda oynatıcı kontrollerinin içinde değilse oynat butonuna odaklan
+    if (!ae || !controls.contains(ae)) {
+      requestAnimationFrame(() => playBtn.focus());
+    }
   }
+  resetHide();
+}
   function hideControls(): void { controls.classList.remove('show'); clearInterval(hudTimer); }
   function resetHide(): void { clearTimeout(hideTimer); hideTimer = window.setTimeout(() => { if (!menuOpen) hideControls(); }, 7000); }
 
@@ -282,12 +293,26 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
       }
       if (controlsVisible()) {
         resetHide();
+        const ae = document.activeElement as HTMLElement | null;
+
+        // İlerleme çubuğu odaktayken sağ/sol tuşları doğrudan sarmayı tetikler
+        if (ae === progress && tracks) {
+          if (e.keyCode === KEY.LEFT) { seekRelative(-10000); return true; }
+          if (e.keyCode === KEY.RIGHT) { seekRelative(10000); return true; }
+        }
+
         switch (e.keyCode) {
-          case KEY.LEFT: moveZone(-1); return true;
-          case KEY.RIGHT: moveZone(1); return true;
-          case KEY.UP: focusEl(backBtn); return true;
-          case KEY.DOWN: focusEl(gearBtn); return true;
-          case KEY.ENTER: zone[zoneIdx]?.click(); return true;
+          case KEY.LEFT: moveFocus('left'); return true;
+          case KEY.RIGHT: moveFocus('right'); return true;
+          case KEY.UP: moveFocus('up'); return true;
+          case KEY.DOWN: moveFocus('down'); return true;
+          case KEY.ENTER:
+            if (ae === progress) {
+              toggle(); // İlerleme çubuğunda Enter'a basılırsa videoyu duraklat/oynat
+            } else {
+              ae?.click();
+            }
+            return true;
           case KEY.PLAYPAUSE: toggle(); return true;
           case KEY.PLAY: player.resume(); paused = false; setPlayGlyph(); return true;
           case KEY.PAUSE: player.pause(); paused = true; setPlayGlyph(); return true;

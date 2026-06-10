@@ -41,15 +41,13 @@ export function homeScreen(): Screen {
   const addProfileBtn = el('button', { class: 'side-add', focusable: true, text: '＋  ' + t('btn_profile'), onClick: () => nav.go('profiles') });
   const favBtn = el('button', { class: 'glass-icon', focusable: true, html: ICONS.heart(), onClick: () => nav.go('favorites') });
   const setBtn = el('button', { class: 'glass-icon', focusable: true, html: ICONS.gear(), onClick: () => nav.go('settings') });
-  const devBtn = el('button', { class: 'glass-icon', focusable: true, text: '🔧', onClick: () => nav.go('playertest') });
-
   const sidebar = el('aside', { class: 'sidebar' }, [
     el('div', { class: 'side-logo', html: ICONS.logo() }),
     profileName,
     premium,
     navLive, navFilms, navSeries,
     addProfileBtn,
-    el('div', { class: 'side-icons' }, [favBtn, setBtn, devBtn]),
+    el('div', { class: 'side-icons' }, [favBtn, setBtn]),
   ]);
 
   // ---- content ----

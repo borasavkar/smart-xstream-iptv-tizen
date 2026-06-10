@@ -46,24 +46,90 @@ export function profilesScreen(): Screen {
     }));
     focusFirstIn(body);
   }
-
-  function renderForm(editing: Profile | null): void {
+function renderForm(editing: Profile | null): void {
     title.textContent = editing ? t('title_edit_profile') : t('title_add_profile');
     body.innerHTML = '';
     const noReal = !Profiles.all().some((p) => p.username !== DEMO_USER);
 
-    const name = el('input', { class: 'fld', focusable: true, placeholder: t('hint_profile_name'), value: editing?.profileName ?? '' });
-    const user = el('input', { class: 'fld', focusable: true, placeholder: t('hint_username'), value: editing?.username ?? '' });
-    const pass = el('input', { class: 'fld', focusable: true, placeholder: t('hint_password'), value: editing?.password ?? '' });
-    const url = el('input', { class: 'fld', focusable: true, placeholder: t('hint_server_url'), value: editing?.serverUrl ?? '' });
+    // 1. Etiketli ve SmartThings tam uyumlu Input oluşturucu
+   const createField = (labelKey: string, val: string, inputType: string = 'text', isLast: boolean = false) => {
+      const inp = el('input', {
+        class: 'fld',
+        type: inputType,
+        focusable: true,
+        placeholder: t(labelKey),
+        value: editing ? val : '',
+        attrs: {
+          'autocomplete': 'off',
+          'spellcheck': 'false',
+          'enterkeyhint': isLast ? 'done' : 'next' // TV klavyesine sıradaki işleme geçme komutu verir
+        }
+      });
+      const wrap = el('div', { class: 'fld-wrap' }, [
+        el('label', { class: 'fld-label', text: t(labelKey) }),
+        inp
+      ]);
+      return { wrap, inp };
+    };
+
+    const nameFld = createField('hint_profile_name', editing?.profileName ?? '');
+    const userFld = createField('hint_username', editing?.username ?? '');
+    const passFld = createField('hint_password', editing?.password ?? '', 'password');
+    const urlFld  = createField('hint_server_url', editing?.serverUrl ?? '', 'text', true); // Son alan
 
     const save = el('button', { class: 'btn primary', focusable: true, text: editing ? t('btn_update') : t('btn_save') });
-    save.addEventListener('click', () => { void doSave(editing, name, user, pass, url, save); });
+    save.addEventListener('click', () => { 
+      void doSave(editing, nameFld.inp as HTMLInputElement, userFld.inp as HTMLInputElement, passFld.inp as HTMLInputElement, urlFld.inp as HTMLInputElement, save); 
+    });
+    
     const cancel = el('button', { class: 'btn', focusable: true, text: t('btn_cancel'), onClick: () => renderList() });
     const actions = el('div', { class: 'form-actions' }, [save, cancel]);
 
+// 'div' yerine 'form' etiketi kullanıyoruz ve HTML5 native davranışına izin veriyoruz
+// 1. Form Kapsayıcısı ve Submit Dinleyicisi (onSubmit hatasının çözümü)
+    const form = el('form', { class: 'form' }, [
+      nameFld.wrap, userFld.wrap, passFld.wrap, urlFld.wrap, actions
+    ]);
+    
+    // Tizen klavyesinin sayfayı yenilemesini engellemek için submit olayını native olarak durduruyoruz
+    form.addEventListener('submit', (e: Event) => { 
+      e.preventDefault(); 
+    });
+
+    // 2. Tizen & SmartThings İlerleme Algoritması (inputs çakışmasını önlemek için isim formFields yapıldı)
+    const formFields = [nameFld.inp, userFld.inp, passFld.inp, urlFld.inp];
+    formFields.forEach((inp, idx) => {
+      inp.addEventListener('keydown', (e: KeyboardEvent) => {
+        // 65376: Tizen Bitti Tuşu | 13: Harici Klavye Enter Tuşu
+        if (e.keyCode === 65376 || e.keyCode === 13) {
+          e.preventDefault();
+          const nextTarget = formFields[idx + 1] || save;
+          nextTarget.focus();
+        }
+      });
+    });
+// 2. SmartThings çakışmasını engelleyen optimize edilmiş Otomatik İlerleme
+    const inputs = [nameFld.inp, userFld.inp, passFld.inp, urlFld.inp];
+    inputs.forEach((inp, idx) => {
+      inp.addEventListener('keydown', (e: KeyboardEvent) => {
+        // 65376: Tizen Bitti Tuşu | 13: Harici Klavye Enter Tuşu
+        if (e.keyCode === 65376 || e.keyCode === 13) {
+          e.preventDefault();
+          
+          // 1. Mevcut oturumu TV ve SmartThings tarafında temizce sonlandır
+          inp.blur(); 
+          
+          const nextTarget = inputs[idx + 1] || save;
+          
+          // 2. Senkronizasyonun tamamlanması için bekle ve sadece çerçeveyi (odağı) taşı
+          setTimeout(() => {
+            nextTarget.focus();
+          }, 400); 
+        }
+      });
+    });
+
     if (editing) {
-      // Two-tap confirm so a saved profile is never deleted by accident.
       let armed = false;
       const delBtn = el('button', { class: 'btn danger', focusable: true, text: t('btn_delete') });
       delBtn.addEventListener('click', () => {
@@ -73,15 +139,16 @@ export function profilesScreen(): Screen {
       actions.appendChild(delBtn);
     }
 
-    body.appendChild(el('div', { class: 'form' }, [name, user, pass, url]));
+    body.appendChild(form);
 
+    // İlk kurulum aşaması için eklenen Demo butonu bırakıldı, ancak form kutularının doldurulması iptal edildi.
     if (!editing && noReal) {
-      name.value = 'Demo Mode'; user.value = DEMO_USER; pass.value = '123456'; url.value = 'http://mock.com';
       actions.appendChild(el('button', { class: 'btn', focusable: true, text: t('load_demo_data'), onClick: saveDemo }));
     }
-    body.appendChild(actions);
-    requestAnimationFrame(() => name.focus());
+    
+    requestAnimationFrame(() => nameFld.inp.focus());
   }
+
 
   function saveDemo(): void {
     const demo = Profiles.insert({ profileName: 'Demo Mode', username: DEMO_USER, password: '123456', serverUrl: 'http://mock.com', isM3u: false });
