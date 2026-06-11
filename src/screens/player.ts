@@ -59,7 +59,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const playBtn = el('button', { class: 'tbtn tbtn-play', focusable: true, text: '⏸', attrs: { 'data-initial-focus': '' }, onClick: toggle });
   const transport: HTMLElement[] = isLive
     ? [tbtn('⏮', 'tbtn-side', () => switchTo(index - 1)), playBtn, tbtn('⏭', 'tbtn-side', () => switchTo(index + 1))]
-    : [tbtn('⏮', 'tbtn-side', () => seekRelative(-300000)), tbtn('⏪', 'tbtn-seek', () => seekRelative(-10000)), playBtn, tbtn('⏩', 'tbtn-seek', () => seekRelative(10000)), tbtn('⏭', 'tbtn-side', () => seekRelative(300000))];
+    : [tbtn('⏮', 'tbtn-side', () => nudgeSeek(-300000)), tbtn('⏪', 'tbtn-seek', () => holdSeek(-1)), playBtn, tbtn('⏩', 'tbtn-seek', () => holdSeek(1)), tbtn('⏭', 'tbtn-side', () => nudgeSeek(300000))];
 
   const favBtn = el('button', { class: 'pc-iconbtn', focusable: true });
   const gearBtn = el('button', { class: 'pc-iconbtn pc-gear', focusable: true, html: ICONS.gear(), onClick: openSettingsMenu });
@@ -84,15 +84,16 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const seekHud = el('div', { class: 'seek-hud' });
   const subtitle = el('div', { class: 'player-subtitle' });
   const status = el('div', { class: 'player-status-c' });
-  const dbg = el('div', { class: 'pc-dbg' }); // temporary remote-key debug readout
-  const root = el('div', { class: 'screen player-screen' }, [subtitle, seekHud, status, dbg, controls, menu]);
+  const root = el('div', { class: 'screen player-screen' }, [subtitle, seekHud, status, controls, menu]);
 
   // ---- state ----
   let paused = false, resumeMs = 0, resumed = false, lastSaved = 0;
   let curMs = 0, durMs = 0;
   let hideTimer = 0, hudTimer = 0;
   let menuOpen = false, prefsApplied = false;
-  let seeking = false, seekTarget = 0, seekPresses = 0, seekTimer = 0;
+  let seeking = false, seekTarget = 0, seekTimer = 0;
+  let gestureStart = 0, lastTick = 0;     // basılı-tutma sarma jesti zamanlaması
+  let settleTarget = -1, settleUntil = 0; // seek sonrası eski konum raporlarını yutma penceresi
   let zone: HTMLElement[] = [], zoneIdx = 0;
 
   if (tracks) { const prev = History.get(streamId, p.type); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
@@ -104,7 +105,15 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     {
       onState: (s) => { setStatus(s); if (s === 'playing') { paused = false; setPlayGlyph(); onPlaying(); } if (s === 'paused') { paused = true; setPlayGlyph(); } },
       onTime: (cur, dur) => {
-        curMs = cur; durMs = dur;
+        durMs = dur;
+        // AVPlay seek sonrası bir süre daha ESKİ konumu raporlar; hedefe oturana
+        // kadar bu raporları yok say ki bar geriye sıçramasın ve ardışık
+        // sarmalar bayat konumdan başlamasın.
+        if (settleTarget >= 0) {
+          if (Math.abs(cur - settleTarget) > 4000 && Date.now() < settleUntil) return;
+          settleTarget = -1;
+        }
+        curMs = cur;
         if (!seeking) updateProgress();
         if (tracks && cur > 0) { const fin = dur > 0 && cur / dur > 0.95; const now = Date.now(); if (fin || now - lastSaved > 5000) { lastSaved = now; save(cur, dur, fin); } }
       },
@@ -235,20 +244,47 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
 
   // ---- transport actions ----
   function toggle(): void { if (paused) { player.resume(); paused = false; } else { player.pause(); paused = true; } setPlayGlyph(); showControls(); }
-  function seekRelative(delta: number): void { if (durMs <= 0) return; const tgt = Math.max(0, Math.min(durMs, curMs + delta)); player.seekTo(tgt); curMs = tgt; updateProgress(); showControls(); }
+
+  // ---- Netflix tarzı hızlanan sarma ----
+  // Basılı tutarken yalnızca HEDEF konum, bar ve HUD ilerler; gerçek seek,
+  // tuş bırakıldıktan SEEK_COMMIT_MS sonra TEK SEFER yapılır. AVPlay'de her
+  // seek pahalıdır — tekrar başına seek göndermek yavaşlığın asıl nedeniydi.
+  // Adım, tutma süresiyle büyür: 0-1.5sn→10sn · 1.5-4sn→30sn · 4-8sn→60sn · 8sn+→120sn.
+  // Tik aralığı sabit (SEEK_TICK_MS) — kumandanın tekrar hızından bağımsız,
+  // her TV modelinde aynı tarama hızını verir (~2 saatlik film ≈ 15-18 sn'de baştan sona).
+  const SEEK_TICK_MS = 180;
+  const SEEK_COMMIT_MS = 450;
+  function holdStep(heldMs: number): number { return heldMs < 1500 ? 10000 : heldMs < 4000 ? 30000 : heldMs < 8000 ? 60000 : 120000; }
   function holdSeek(dir: number): void {
     if (!tracks || durMs <= 0) return;
-    if (!seeking) { seeking = true; seekTarget = curMs; seekPresses = 0; }
-    seekPresses++;
-    const step = seekPresses < 5 ? 10 : seekPresses < 10 ? 30 : seekPresses < 20 ? 60 : 120;
-    seekTarget = Math.max(0, Math.min(durMs, seekTarget + dir * step * 1000));
-    seekHud.textContent = `${dir > 0 ? '⏩' : '⏪'}  ${fmt(seekTarget)} / ${fmt(durMs)}`;
+    const now = Date.now();
+    if (!seeking) { gestureStart = now; lastTick = 0; }
+    else if (now - lastTick < SEEK_TICK_MS) { armCommit(); return; } // fazla tuş tekrarlarını yut
+    lastTick = now;
+    nudgeSeek(dir * holdStep(now - gestureStart));
+  }
+  function nudgeSeek(deltaMs: number): void {
+    if (!tracks || durMs <= 0) return;
+    if (!seeking) { seeking = true; seekTarget = curMs; if (!gestureStart) gestureStart = Date.now(); }
+    seekTarget = Math.max(0, Math.min(durMs - 1000, seekTarget + deltaMs));
+    const d = seekTarget - curMs;
+    seekHud.textContent = `${deltaMs >= 0 ? '⏩' : '⏪'}  ${d < 0 ? '−' : '+'}${fmt(Math.abs(d))}  ·  ${fmt(seekTarget)}`;
     seekHud.classList.add('show');
     barFill.style.width = Math.min(100, (seekTarget / durMs) * 100) + '%';
+    curT.textContent = fmt(seekTarget);
     controls.classList.add('show');
-    clearTimeout(seekTimer); seekTimer = window.setTimeout(commitSeek, 450);
+    armCommit();
   }
-  function commitSeek(): void { if (!seeking) return; player.seekTo(seekTarget); curMs = seekTarget; seeking = false; seekPresses = 0; seekHud.classList.remove('show'); resetHide(); }
+  function armCommit(): void { clearTimeout(seekTimer); seekTimer = window.setTimeout(commitSeek, SEEK_COMMIT_MS); }
+  function commitSeek(): void {
+    if (!seeking) return;
+    seeking = false; gestureStart = 0;
+    settleTarget = seekTarget; settleUntil = Date.now() + 2500;
+    player.seekTo(seekTarget);
+    curMs = seekTarget;
+    seekHud.classList.remove('show');
+    updateProgress(); resetHide();
+  }
 
   function playCurrent(directUrl?: string): void {
     if (!profile) { flash('Profil bulunamadı'); return; }
@@ -280,8 +316,6 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
       showControls();
     },
     onKey(e) {
-      const ae = document.activeElement as HTMLElement | null;
-      dbg.textContent = 'key ' + e.keyCode + ' · focus: ' + ((ae?.textContent || ae?.className || ae?.tagName || 'body').trim().slice(0, 20)) + ' · ' + (controlsVisible() ? 'ctrl' : menuOpen ? 'menu' : 'idle');
       if (menuOpen) {
         switch (e.keyCode) {
           case KEY.UP: moveZone(-1); return true;
@@ -291,14 +325,22 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
           default: return true;
         }
       }
+      // Aktif sarma jesti varsa kontroller görünür olsa bile tekrar tuşları jesti
+      // sürdürür — yoksa kumandanın otomatik tekrarları odak gezdirmeye dönüşüp
+      // basılı tutmayı ilk +10sn'de keserdi (eski "çok yavaş ilerleme" hatası).
+      if (tracks && seeking) {
+        if (e.keyCode === KEY.LEFT || e.keyCode === KEY.REWIND) { holdSeek(-1); return true; }
+        if (e.keyCode === KEY.RIGHT || e.keyCode === KEY.FASTFORWARD) { holdSeek(1); return true; }
+        if (e.keyCode === KEY.ENTER) { clearTimeout(seekTimer); commitSeek(); return true; } // OK = hedefe hemen atla
+      }
       if (controlsVisible()) {
         resetHide();
         const ae = document.activeElement as HTMLElement | null;
 
-        // İlerleme çubuğu odaktayken sağ/sol tuşları doğrudan sarmayı tetikler
+        // İlerleme çubuğu odaktayken sağ/sol, hızlanan sarmayı sürer
         if (ae === progress && tracks) {
-          if (e.keyCode === KEY.LEFT) { seekRelative(-10000); return true; }
-          if (e.keyCode === KEY.RIGHT) { seekRelative(10000); return true; }
+          if (e.keyCode === KEY.LEFT) { holdSeek(-1); return true; }
+          if (e.keyCode === KEY.RIGHT) { holdSeek(1); return true; }
         }
 
         switch (e.keyCode) {
@@ -306,6 +348,8 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
           case KEY.RIGHT: moveFocus('right'); return true;
           case KEY.UP: moveFocus('up'); return true;
           case KEY.DOWN: moveFocus('down'); return true;
+          case KEY.REWIND: if (tracks) holdSeek(-1); return true;
+          case KEY.FASTFORWARD: if (tracks) holdSeek(1); return true;
           case KEY.ENTER:
             if (ae === progress) {
               toggle(); // İlerleme çubuğunda Enter'a basılırsa videoyu duraklat/oynat

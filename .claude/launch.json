@@ -4,7 +4,7 @@
     {
       "name": "smart-xtream",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["C:/Tizen iptv Project/smart-xtream-tizen-claude/serve.mjs"],
+      "runtimeArgs": ["serve.mjs"],
       "port": 8080
     }
   ]

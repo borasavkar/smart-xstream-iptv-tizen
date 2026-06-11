@@ -5,7 +5,7 @@
 type Dict = Record<string, string>;
 
 const tr: Dict = {
-  app_name: 'Smart Xtream AI: IPTV Player',
+  app_name: 'Smart Xtream AI IPTV Player',
   brand: 'Smart Xtream',
 
   // intro
@@ -137,13 +137,21 @@ const tr: Dict = {
   msg_trial_active: 'Deneme: %1$d Gün Kaldı',
   premium: 'Premium',
 
+  // hızlı önizleme katmanı
+  qp_play: '▶ Şimdi İzle',
+  qp_details: 'Tüm Detaylar',
+  qp_close_hint: 'Kapatmak için Geri tuşuna basın',
+  qp_loading: 'Yükleniyor…',
+  qp_seasons: 'Sezon',
+  qp_preview_failed: 'Önizleme oynatılamadı',
+
   // dev
   dev_player_test: '🔧 Oynatıcı Testi',
   coming_phase2: '%1$s — Aşama 2’de gelecek',
 };
 
 const en: Dict = {
-  app_name: 'Smart Xtream AI: IPTV Player', brand: 'Smart Xtream',
+  app_name: 'Smart Xtream AI IPTV Player', brand: 'Smart Xtream',
   intro_main_title: 'The Future of TV Experience',
   intro_sub_title: "Meet the AI-powered Smart Xtream. Not just a player, it's a technology.",
   feat_ai_stability: 'AI-Powered Stability', feat_4k_speed: 'Ultra Fast 4K Streaming', feat_no_buffer: 'Buffer-Free Live Sports',
@@ -185,6 +193,8 @@ const en: Dict = {
   quality_auto: 'Auto', subtitle_style: 'Subtitle Style', size_small: 'Small', size_medium: 'Medium', size_large: 'Large',
   sub_bg: 'Background', opt_on: 'On', preferred_audio: 'Preferred Audio Language', preferred_subtitle: 'Preferred Subtitle Language', video_quality_pref: 'Video Quality', menu_settings: 'Settings',
   dev_player_test: '🔧 Player Test', coming_phase2: '%1$s — coming soon',
+  qp_play: '▶ Play Now', qp_details: 'Full Details', qp_close_hint: 'Press Back to close',
+  qp_loading: 'Loading…', qp_seasons: 'Seasons', qp_preview_failed: 'Preview unavailable',
 };
 
 const de: Dict = {

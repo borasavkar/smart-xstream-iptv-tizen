@@ -9,6 +9,8 @@ export type PlaybackState =
 export interface PlayOptions {
   url: string;
   userAgent?: string;
+  /** Tam ekran yerine belirli bir bölgede oynat (hızlı önizleme paneli için). */
+  viewport?: { x: number; y: number; w: number; h: number };
 }
 
 export interface AVPlayerCallbacks {
@@ -60,9 +62,11 @@ export class AVPlayer {
       this.stopSilently();
       this.setState('opening', opts.url);
       av.open(opts.url);
-      av.setDisplayRect(0, 0, 1920, 1080);
+      const vp = opts.viewport;
+      av.setDisplayRect(vp?.x ?? 0, vp?.y ?? 0, vp?.w ?? 1920, vp?.h ?? 1080);
       if (this.obj) this.obj.style.display = 'block';
-      try { av.setDisplayMethod('PLAYER_DISPLAY_MODE_FULL_SCREEN'); } catch { /* older firmware */ }
+      // Önizleme penceresinde en-boy oranını koru (LETTER_BOX); tam ekranda doldur.
+      try { av.setDisplayMethod(vp ? 'PLAYER_DISPLAY_MODE_LETTER_BOX' : 'PLAYER_DISPLAY_MODE_FULL_SCREEN'); } catch { /* older firmware */ }
       try { av.setStreamingProperty('USER_AGENT', opts.userAgent || DEFAULT_UA); } catch (e) { this.log('UA: ' + msg(e)); }
 
       av.setListener({
@@ -89,6 +93,15 @@ export class AVPlayer {
     const v = this.video;
     if (!v) { this.setState('error', '<video> yok'); return; }
     this.setState('opening', opts.url);
+    const vp = opts.viewport;
+    // Önizleme: videoyu panel bölgesine konumlandır ve katmanın deliğinden
+    // görünecek şekilde öne al; tam ekran oynatmada stiller sıfırlanır.
+    v.style.top = vp ? vp.y + 'px' : '';
+    v.style.left = vp ? vp.x + 'px' : '';
+    v.style.width = vp ? vp.w + 'px' : '';
+    v.style.height = vp ? vp.h + 'px' : '';
+    v.style.zIndex = vp ? '39' : '';
+    v.style.objectFit = vp ? 'cover' : '';
     v.style.display = 'block';
     v.src = opts.url;
     v.onwaiting = () => this.setState('buffering');

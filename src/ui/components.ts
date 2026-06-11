@@ -2,6 +2,7 @@
 // Ported from item_movie_card.xml (image + bottom title overlay) and the
 // home RecyclerViews. Reused by Phase 2 list/detail screens too.
 import { el } from './dom';
+import { attachQuickPreview } from './quickpreview';
 
 export interface PosterItem {
   id: number;
@@ -15,10 +16,14 @@ export function posterCard(item: PosterItem, onSelect: (i: PosterItem) => void):
   if (item.image) img.style.backgroundImage = `url("${item.image.replace(/"/g, '%22')}")`;
   else img.classList.add('poster-img--empty');
 
-  return el('button', { class: 'poster', focusable: true, onClick: () => onSelect(item) }, [
+  const card = el('button', { class: 'poster', focusable: true, onClick: () => onSelect(item) }, [
     img,
     el('div', { class: 'poster-title', text: item.name || '—' }),
   ]);
+  // Üzerinde bekleyince hızlı önizleme katmanı; "Detaylar" düğmesi kartın
+  // normal tıklama davranışını (ekranın verdiği onSelect) kullanır.
+  attachQuickPreview(card, item, () => onSelect(item));
+  return card;
 }
 
 /** Returns a rail section, or null when there is nothing to show (hides empty rails, like the app). */

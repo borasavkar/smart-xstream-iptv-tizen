@@ -42,7 +42,7 @@ export function homeScreen(): Screen {
   const favBtn = el('button', { class: 'glass-icon', focusable: true, html: ICONS.heart(), onClick: () => nav.go('favorites') });
   const setBtn = el('button', { class: 'glass-icon', focusable: true, html: ICONS.gear(), onClick: () => nav.go('settings') });
   const sidebar = el('aside', { class: 'sidebar' }, [
-    el('div', { class: 'side-logo', html: ICONS.logo() }),
+    el('div', { class: 'side-logo' }, [el('img', { class: 'side-logo-img', attrs: { src: 'icon.png', alt: '' } })]),
     profileName,
     premium,
     navLive, navFilms, navSeries,

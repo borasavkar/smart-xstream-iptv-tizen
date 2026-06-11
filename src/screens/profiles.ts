@@ -46,28 +46,33 @@ export function profilesScreen(): Screen {
     }));
     focusFirstIn(body);
   }
-function renderForm(editing: Profile | null): void {
+
+  function renderForm(editing: Profile | null): void {
     title.textContent = editing ? t('title_edit_profile') : t('title_add_profile');
     body.innerHTML = '';
     const noReal = !Profiles.all().some((p) => p.username !== DEMO_USER);
 
-    // 1. Etiketli ve SmartThings tam uyumlu Input oluşturucu
-   const createField = (labelKey: string, val: string, inputType: string = 'text', isLast: boolean = false) => {
+    // Etiketli, TV/telefon klavyesi dostu alan. Otomatik büyük harf, düzeltme ve
+    // tamamlama kapalı: SmartThings klavyesi kullanıcı adı / şifre / URL'yi
+    // sessizce değiştirmesin; yapıştırılan metin de olduğu gibi kalsın.
+    const createField = (labelKey: string, val: string, inputType: string = 'text', isLast: boolean = false) => {
       const inp = el('input', {
         class: 'fld',
         type: inputType,
         focusable: true,
         placeholder: t(labelKey),
-        value: editing ? val : '',
+        value: val,
         attrs: {
           'autocomplete': 'off',
+          'autocapitalize': 'off',
+          'autocorrect': 'off',
           'spellcheck': 'false',
-          'enterkeyhint': isLast ? 'done' : 'next' // TV klavyesine sıradaki işleme geçme komutu verir
-        }
+          'enterkeyhint': isLast ? 'done' : 'next', // TV klavyesine sıradaki işleme geçme komutu verir
+        },
       });
       const wrap = el('div', { class: 'fld-wrap' }, [
         el('label', { class: 'fld-label', text: t(labelKey) }),
-        inp
+        inp,
       ]);
       return { wrap, inp };
     };
@@ -75,61 +80,55 @@ function renderForm(editing: Profile | null): void {
     const nameFld = createField('hint_profile_name', editing?.profileName ?? '');
     const userFld = createField('hint_username', editing?.username ?? '');
     const passFld = createField('hint_password', editing?.password ?? '', 'password');
-    const urlFld  = createField('hint_server_url', editing?.serverUrl ?? '', 'text', true); // Son alan
+    const urlFld = createField('hint_server_url', editing?.serverUrl ?? '', 'text', true);
+    urlFld.inp.setAttribute('inputmode', 'url'); // telefon klavyesinde / : . tuşlu URL düzeni
 
     const save = el('button', { class: 'btn primary', focusable: true, text: editing ? t('btn_update') : t('btn_save') });
-    save.addEventListener('click', () => { 
-      void doSave(editing, nameFld.inp as HTMLInputElement, userFld.inp as HTMLInputElement, passFld.inp as HTMLInputElement, urlFld.inp as HTMLInputElement, save); 
-    });
-    
+    save.addEventListener('click', () => { void doSave(editing, nameFld.inp, userFld.inp, passFld.inp, urlFld.inp, save); });
+
     const cancel = el('button', { class: 'btn', focusable: true, text: t('btn_cancel'), onClick: () => renderList() });
     const actions = el('div', { class: 'form-actions' }, [save, cancel]);
 
-// 'div' yerine 'form' etiketi kullanıyoruz ve HTML5 native davranışına izin veriyoruz
-// 1. Form Kapsayıcısı ve Submit Dinleyicisi (onSubmit hatasının çözümü)
+    // Gerçek <form>: Tizen klavyesi Enter'ı submit'e çevirdiğinde sayfanın
+    // yenilenmemesi için submit durduruluyor.
     const form = el('form', { class: 'form' }, [
-      nameFld.wrap, userFld.wrap, passFld.wrap, urlFld.wrap, actions
+      nameFld.wrap, userFld.wrap, passFld.wrap, urlFld.wrap, actions,
     ]);
-    
-    // Tizen klavyesinin sayfayı yenilemesini engellemek için submit olayını native olarak durduruyoruz
-    form.addEventListener('submit', (e: Event) => { 
-      e.preventDefault(); 
-    });
+    form.addEventListener('submit', (e: Event) => { e.preventDefault(); });
 
-    // 2. Tizen & SmartThings İlerleme Algoritması (inputs çakışmasını önlemek için isim formFields yapıldı)
+    // Tizen "Bitti" (65376) veya Enter (13): sıradaki alana, son alandan Kaydet'e geç.
+    // Mevcut alan önce blur ile TAMAMEN kapatılır ve odak gecikmeyle taşınır: TV'nin
+    // klavye oturumu bitip yeni alan için sıfırdan açılsın ki SmartThings telefon
+    // klavyesi de yeni oturuma tekrar bağlanabilsin (kısa gecikme + blur'suz geçişte
+    // panel hiç kapanmadığından telefon "yeni alan" sinyali alamıyor).
+    // Kumandanın OK tuşu da 13 gönderir; bu yüzden 13 yalnızca alana odaklandıktan
+    // sonra bir şey yazılmış/yapıştırılmışsa ilerletir — yazılmamışsa native akışa
+    // bırakılır ki OK, alanın klavyesini açabilsin. IME "Bitti" (65376) her zaman ilerletir.
+    const IME_REOPEN_DELAY_MS = 400;
+    const typed = new Set<HTMLInputElement>();
     const formFields = [nameFld.inp, userFld.inp, passFld.inp, urlFld.inp];
     formFields.forEach((inp, idx) => {
+      inp.addEventListener('focus', () => { typed.delete(inp); });
+      inp.addEventListener('input', () => { typed.add(inp); });
       inp.addEventListener('keydown', (e: KeyboardEvent) => {
-        // 65376: Tizen Bitti Tuşu | 13: Harici Klavye Enter Tuşu
-        if (e.keyCode === 65376 || e.keyCode === 13) {
-          e.preventDefault();
-          const nextTarget = formFields[idx + 1] || save;
+        if (e.keyCode !== 65376 && e.keyCode !== 13) return;
+        if (e.keyCode === 13 && !typed.has(inp)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        inp.blur();
+        const nextTarget = formFields[idx + 1] ?? save;
+        window.setTimeout(() => {
           nextTarget.focus();
-        }
-      });
-    });
-// 2. SmartThings çakışmasını engelleyen optimize edilmiş Otomatik İlerleme
-    const inputs = [nameFld.inp, userFld.inp, passFld.inp, urlFld.inp];
-    inputs.forEach((inp, idx) => {
-      inp.addEventListener('keydown', (e: KeyboardEvent) => {
-        // 65376: Tizen Bitti Tuşu | 13: Harici Klavye Enter Tuşu
-        if (e.keyCode === 65376 || e.keyCode === 13) {
-          e.preventDefault();
-          
-          // 1. Mevcut oturumu TV ve SmartThings tarafında temizce sonlandır
-          inp.blur(); 
-          
-          const nextTarget = inputs[idx + 1] || save;
-          
-          // 2. Senkronizasyonun tamamlanması için bekle ve sadece çerçeveyi (odağı) taşı
-          setTimeout(() => {
-            nextTarget.focus();
-          }, 400); 
-        }
+          if (nextTarget instanceof HTMLInputElement) {
+            const end = nextTarget.value.length;
+            try { nextTarget.setSelectionRange(end, end); } catch { /* tüm input türleri desteklemez */ }
+          }
+        }, IME_REOPEN_DELAY_MS);
       });
     });
 
     if (editing) {
+      // Two-tap confirm so a saved profile is never deleted by accident.
       let armed = false;
       const delBtn = el('button', { class: 'btn danger', focusable: true, text: t('btn_delete') });
       delBtn.addEventListener('click', () => {
@@ -141,14 +140,13 @@ function renderForm(editing: Profile | null): void {
 
     body.appendChild(form);
 
-    // İlk kurulum aşaması için eklenen Demo butonu bırakıldı, ancak form kutularının doldurulması iptal edildi.
+    // İlk kurulumda demo profili tek tuşla eklenebilir; form kutuları boş başlar.
     if (!editing && noReal) {
       actions.appendChild(el('button', { class: 'btn', focusable: true, text: t('load_demo_data'), onClick: saveDemo }));
     }
-    
+
     requestAnimationFrame(() => nameFld.inp.focus());
   }
-
 
   function saveDemo(): void {
     const demo = Profiles.insert({ profileName: 'Demo Mode', username: DEMO_USER, password: '123456', serverUrl: 'http://mock.com', isM3u: false });

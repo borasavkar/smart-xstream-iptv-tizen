@@ -35,6 +35,9 @@ files:
   - icon.png
 
 # files to exclude based on matched patterns
+# NOT: Paketleme her zaman dist/ klasöründen yapılmalı (README). Aşağıdaki
+# .claude/.git/node_modules kalıpları, yanlışlıkla proje kökünden paketlenirse
+# repo içeriğinin ve Claude çalışma kopyalarının wgt'ye girmesini önler.
 excludes:
   - Build/*
   - Debug/*
@@ -45,6 +48,9 @@ excludes:
   - \.tproject
   - \.wgt
   - tizen_web_project.yaml
+  - \.claude/.*
+  - \.git/.*
+  - node_modules/.*
 
 # project dependencies
 deps: []

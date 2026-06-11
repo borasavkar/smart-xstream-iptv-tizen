@@ -2,6 +2,7 @@
 // into a root element, plus global remote-key handling (arrows → spatial focus,
 // Enter → activate, Back → pop/exit). Screens can intercept keys via onKey.
 import { KEY, moveFocus, focusFirst, exitApp } from '../input/remote';
+import { overlayKey } from './overlay';
 
 export interface Screen {
   el: HTMLElement;
@@ -67,8 +68,10 @@ export class Router {
     });
   }
 
-// Router sınıfı içindeki `handleKey` metodunu bul ve şu şekilde değiştir:
   private handleKey(e: KeyboardEvent): void {
+    // Açık bir üst katman (hızlı önizleme vb.) tuşu yutarsa ekrana hiç sorma.
+    if (overlayKey(e)) { e.preventDefault(); e.stopPropagation(); return; }
+    // When a screen handles the key, stop the platform default (focus move / scroll).
     if (this.current?.onKey?.(e)) { e.preventDefault(); e.stopPropagation(); return; }
 
     const ae = document.activeElement as HTMLElement | null;
@@ -93,6 +96,8 @@ export class Router {
       }
       case KEY.BACK:
       case KEY.EXIT:
+        // Yazarken Return ekrandan atmasın: sadece alandan çıkılır, form verisi korunur.
+        if (e.keyCode === KEY.BACK && isInput && ae) { ae.blur(); e.preventDefault(); break; }
         this.back();
         e.preventDefault();
         break;

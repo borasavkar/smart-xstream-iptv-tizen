@@ -1,8 +1,15 @@
 // Generates a 512x512 placeholder app icon (icon.png) with zero dependencies.
 // Dark gradient background + neon-green disc + dark play triangle.
-// Replace with real branded artwork before store submission.
-import { writeFileSync } from 'fs';
+// icon.png now ships the real Play Store artwork (ic_launcher-playstore.png),
+// so this script refuses to overwrite an existing icon.
+import { writeFileSync, existsSync } from 'fs';
 import { deflateSync } from 'zlib';
+
+const outPath = fileURLToPathSafe(new URL('../icon.png', import.meta.url));
+if (existsSync(outPath)) {
+  console.log('icon.png exists (real brand artwork) — not overwriting. Delete it first to regenerate the placeholder.');
+  process.exit(0);
+}
 
 const W = 512, H = 512;
 const px = Buffer.alloc(W * H * 4);
