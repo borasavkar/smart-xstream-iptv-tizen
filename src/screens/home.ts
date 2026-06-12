@@ -13,6 +13,7 @@ import { Favorites } from '../storage/favorites';
 import { History } from '../storage/history';
 import { openContent } from '../app/open-content';
 import { checkTrial } from '../core/trial';
+import { CONFIG } from '../config/app-config';
 import { isAuthed, type VodStream, type SeriesStream } from '../core/models';
 import { recommendMovies, recommendSeries, isAdultContent } from '../core/recommendation';
 import { nav } from '../app/nav';
@@ -103,7 +104,9 @@ export function homeScreen(): Screen {
 
     // License gate (ported from MainActivity.checkLicenseAndStart): premium + demo
     // users pass; otherwise enforce the 7-day trial (fail-open via checkTrial).
-    if (!Settings.premium() && !Settings.demoMode()) {
+    // CONFIG.freeRelease true iken kapı devre dışı: mağazadaki ücretsiz sürümde
+    // paywall yok (Billing Info: Free beyanıyla tutarlı kalmak için).
+    if (!CONFIG.freeRelease && !Settings.premium() && !Settings.demoMode()) {
       const trial = await checkTrial();
       if (!trial.active) { nav.replace('subscription'); return; }
       if (trial.daysLeft) {

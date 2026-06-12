@@ -4,6 +4,13 @@
 // API key in the Firebase/Google Cloud console and paste it here. Enable
 // Anonymous Auth in Firebase for the trial check to work.
 export const CONFIG = {
+  // Mağaza sürümü (Billing Info: Free): true iken deneme/abonelik kapısı tamamen
+  // kapalıdır — herkes tam erişimlidir ve subscription ekranına hiçbir yol gitmez.
+  // Samsung Checkout (Partner) entegrasyonu hazır olduğunda false yapıp ürün
+  // kimliklerini doldurarak mevcut kullanıcılar dahil herkesi paralı modele
+  // geçirebilirsiniz (uygulama kimliği aynı kaldığı sürece güncellemeyle gelir).
+  freeRelease: true,
+
   firebase: {
     projectId: 'smartxtreamlicense',
     apiKey: 'AIzaSyAuIjQ3-RV9P87vkMqk-xhyS8gnGw-5wPI',
