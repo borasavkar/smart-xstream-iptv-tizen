@@ -28,7 +28,8 @@ const CARD = { x: 240, y: 135, w: 1440, h: 810 };
 const VIDEO_H = 460; // kartın üst video bölümü
 const VIEWPORT = { x: CARD.x, y: CARD.y, w: CARD.w, h: VIDEO_H };
 
-interface PlayParams { type: 'movie' | 'series'; streamId: number; extension: string; name: string; image?: string; directUrl?: string; categoryId?: string; }
+interface EpisodeLite { streamId: number; name?: string; extension?: string; directUrl?: string; image?: string; }
+interface PlayParams { type: 'movie' | 'series'; streamId: number; extension: string; name: string; image?: string; directUrl?: string; categoryId?: string; episodes?: EpisodeLite[]; index?: number; }
 
 let dwellTimer = 0;
 let openSeq = 0;          // bayat async yanıtları ayıklamak için jeton
@@ -205,9 +206,12 @@ function openPreview(item: PosterItem, origin: HTMLElement, onOpenDetails: () =>
         if (info?.cast) credits.appendChild(credLine(t('label_cast'), info.cast));
         if (info?.director) credits.appendChild(credLine(t('label_director'), info.director));
         const firstSeason = Object.keys(res.episodes ?? {}).sort((a, b) => Number(a) - Number(b))[0];
-        const ep = firstSeason ? res.episodes?.[firstSeason]?.[0] : undefined;
+        const seasonList = firstSeason ? (res.episodes?.[firstSeason] ?? []) : [];
+        const ep = seasonList[0];
         if (ep) {
-          playParams = { type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4', name: `${title.textContent} — S${ep.season ?? 1}B${ep.episode_num ?? 1}`, image: info?.cover || item.image, directUrl: ep.direct_source };
+          const cover = info?.cover || item.image;
+          const episodes = seasonList.map((e) => ({ streamId: parseInt(e.id, 10), name: `${title.textContent} — S${e.season ?? 1}B${e.episode_num ?? 1}`, extension: e.container_extension || 'mp4', directUrl: e.direct_source, image: cover }));
+          playParams = { type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4', name: `${title.textContent} — S${ep.season ?? 1}B${ep.episode_num ?? 1}`, image: cover, directUrl: ep.direct_source, episodes, index: 0 };
           if (profile) schedulePlay({ url: buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId: parseInt(ep.id, 10), type: 'series', extension: ep.container_extension, directUrl: ep.direct_source }), viewport: VIEWPORT });
         }
       }

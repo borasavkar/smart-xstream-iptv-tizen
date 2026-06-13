@@ -20,9 +20,11 @@ import { nav } from '../app/nav';
 import type { Screen } from '../app/router';
 
 interface ChannelLite { streamId: number; name?: string; image?: string; directUrl?: string; }
+interface EpisodeLite { streamId: number; name?: string; extension?: string; directUrl?: string; image?: string; }
 interface PlayerParams {
   streamId: number; type: StreamType; extension?: string; name?: string; directUrl?: string;
   image?: string; categoryId?: string; channels?: ChannelLite[]; index?: number;
+  episodes?: EpisodeLite[]; // dizilerde "sıradaki bölüm" için sezon bölüm listesi
 }
 
 const A3TO2: Record<string, string> = { tur: 'tr', eng: 'en', ger: 'de', deu: 'de', fra: 'fr', fre: 'fr', rus: 'ru', ara: 'ar', spa: 'es', ita: 'it', por: 'pt', dut: 'nl', pol: 'pl' };
@@ -34,12 +36,15 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const p = params as unknown as PlayerParams;
   const profile = getActiveProfile();
   const isLive = p.type === 'live';
+  const isSeries = p.type === 'series';
   const tracks = p.type === 'movie' || p.type === 'series';
   const favType: StreamKind = p.type === 'movie' ? 'vod' : p.type;
 
   let streamId = p.streamId;
   let name = p.name || '';
+  let extension = p.extension;
   const channels = p.channels ?? [];
+  const episodes = p.episodes ?? [];
   let index = p.index ?? 0;
 
 // ---- top bar ---- (Orijinal hali, dokunulmadı)
@@ -84,7 +89,17 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   const seekHud = el('div', { class: 'seek-hud' });
   const subtitle = el('div', { class: 'player-subtitle' });
   const status = el('div', { class: 'player-status-c' });
-  const root = el('div', { class: 'screen player-screen' }, [subtitle, seekHud, status, controls, menu]);
+
+  // ---- Sıradaki Bölüm kartı (Netflix tarzı, bölüm sonuna yaklaşınca belirir) ----
+  const nextEpName = el('div', { class: 'next-ep-name' });
+  const nextEpBtn = el('button', { class: 'btn primary next-ep-btn', focusable: true, text: t('next_episode_play'), onClick: () => playNextEpisode() });
+  const nextEpCard = el('div', { class: 'next-ep-card' }, [
+    el('div', { class: 'next-ep-label', text: t('next_episode') }),
+    nextEpName,
+    nextEpBtn,
+  ]);
+
+  const root = el('div', { class: 'screen player-screen' }, [subtitle, seekHud, status, controls, menu, nextEpCard]);
 
   // ---- state ----
   let paused = false, resumeMs = 0, resumed = false, lastSaved = 0;
@@ -94,6 +109,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   let seeking = false, seekTarget = 0, seekTimer = 0;
   let gestureStart = 0, lastTick = 0;     // basılı-tutma sarma jesti zamanlaması
   let settleTarget = -1, settleUntil = 0; // seek sonrası eski konum raporlarını yutma penceresi
+  let nextEpVisible = false, nextEpDismissed = false; // sıradaki bölüm kartı durumu
   let zone: HTMLElement[] = [], zoneIdx = 0;
 
   if (tracks) { const prev = History.get(streamId, p.type); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
@@ -103,7 +119,13 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     document.getElementById('av-player'),
     document.getElementById('av-fallback') as HTMLVideoElement | null,
     {
-      onState: (s) => { setStatus(s); if (s === 'playing') { paused = false; setPlayGlyph(); onPlaying(); } if (s === 'paused') { paused = true; setPlayGlyph(); } },
+      onState: (s) => {
+        setStatus(s);
+        if (s === 'playing') { paused = false; setPlayGlyph(); onPlaying(); }
+        if (s === 'paused') { paused = true; setPlayGlyph(); }
+        // Bölüm gerçekten bittiğinde (kullanıcı kartı kapatmadıysa) sıradakine geç.
+        if (s === 'ended' && isSeries && hasNextEpisode() && !nextEpDismissed) playNextEpisode();
+      },
       onTime: (cur, dur) => {
         durMs = dur;
         // AVPlay seek sonrası bir süre daha ESKİ konumu raporlar; hedefe oturana
@@ -116,6 +138,12 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
         curMs = cur;
         if (!seeking) updateProgress();
         if (tracks && cur > 0) { const fin = dur > 0 && cur / dur > 0.95; const now = Date.now(); if (fin || now - lastSaved > 5000) { lastSaved = now; save(cur, dur, fin); } }
+        // Son NEAR_END_MS içine girince "Sıradaki Bölüm" kartını göster; geri sarılırsa gizle.
+        if (isSeries && hasNextEpisode() && durMs > 60000) {
+          const remaining = durMs - curMs;
+          if (remaining > 0 && remaining <= NEXT_EP_NEAR_END_MS) showNextEp();
+          else if (nextEpVisible && remaining > NEXT_EP_NEAR_END_MS + 5000) hideNextEp();
+        }
       },
       onSubtitle: (text) => { if (Settings.subtitleEnabled()) { subtitle.textContent = text || ''; subtitle.style.display = text ? 'inline-block' : 'none'; } },
     },
@@ -289,7 +317,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   function playCurrent(directUrl?: string): void {
     if (!profile) { flash('Profil bulunamadı'); return; }
     prefsApplied = false; resumed = false; paused = false; setPlayGlyph();
-    const url = buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId, type: p.type, extension: p.extension, directUrl: directUrl ?? p.directUrl });
+    const url = buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId, type: p.type, extension, directUrl: directUrl ?? p.directUrl });
     document.body.classList.add('playing');
     player.play({ url });
   }
@@ -299,6 +327,32 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     const ch = channels[index];
     streamId = ch.streamId; name = ch.name || ''; epgEl.textContent = ''; renderFav();
     playCurrent(ch.directUrl); void loadEpg(streamId); showControls();
+  }
+
+  // ---- Sıradaki Bölüm ----
+  const NEXT_EP_NEAR_END_MS = 40000; // bölümün son 40 saniyesinde kart belirir
+  function hasNextEpisode(): boolean { return isSeries && index + 1 < episodes.length; }
+  function showNextEp(): void {
+    if (nextEpVisible || nextEpDismissed || menuOpen || seeking || !hasNextEpisode()) return;
+    nextEpVisible = true;
+    const next = episodes[index + 1];
+    nextEpName.textContent = next.name || t('text_episode');
+    nextEpCard.classList.add('show');
+    // Kullanıcı pasif izliyorsa (kontroller gizli) odağı butona al ki OK doğrudan geçsin.
+    if (!controlsVisible()) requestAnimationFrame(() => nextEpBtn.focus());
+  }
+  function hideNextEp(): void { nextEpVisible = false; nextEpCard.classList.remove('show'); }
+  function dismissNextEp(): void { nextEpDismissed = true; hideNextEp(); }
+  function playNextEpisode(): void {
+    if (!hasNextEpisode()) return;
+    hideNextEp(); nextEpDismissed = false;
+    index += 1;
+    const ep = episodes[index];
+    streamId = ep.streamId; name = ep.name || ''; extension = ep.extension || extension;
+    resumeMs = 0; resumed = false; curMs = 0; durMs = 0; lastSaved = 0;
+    renderFav();
+    playCurrent(ep.directUrl);
+    showControls();
   }
   async function loadEpg(sid: number): Promise<void> {
     try { const r = await getClient().getShortEpg(sid); const now = r.epg_listings?.[0]; epgEl.textContent = now ? b64(now.title) : (name || ''); }
@@ -324,6 +378,12 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
           case KEY.BACK: case KEY.EXIT: closeMenu(); return true;
           default: return true;
         }
+      }
+      // Sıradaki Bölüm kartı görünür ve kontroller gizliyken (pasif izleme): OK ile
+      // hemen geç, Geri ile kartı kapat. Diğer tuşlar normal akışa düşer (sarma/kontrol).
+      if (nextEpVisible && !controlsVisible()) {
+        if (e.keyCode === KEY.ENTER) { playNextEpisode(); return true; }
+        if (e.keyCode === KEY.BACK || e.keyCode === KEY.EXIT) { dismissNextEp(); return true; }
       }
       // Aktif sarma jesti varsa kontroller görünür olsa bile tekrar tuşları jesti
       // sürdürür — yoksa kumandanın otomatik tekrarları odak gezdirmeye dönüşüp

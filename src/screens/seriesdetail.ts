@@ -45,9 +45,11 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
     epList,
   ]);
 
-  function episodeRow(ep: Episode): HTMLElement {
+  const epLabel = (ep: Episode): string => `${ep.episode_num ? ep.episode_num + '. ' : ''}${ep.title || t('text_episode')}`;
+
+  function episodeRow(ep: Episode, list: Episode[], idx: number): HTMLElement {
     const watched = History.get(parseInt(ep.id, 10), 'series')?.isFinished === true;
-    const label = `${ep.episode_num ? ep.episode_num + '. ' : ''}${ep.title || t('text_episode')}`;
+    const label = epLabel(ep);
     const children: Array<Node | string> = [el('span', { class: 'ep-label', text: label })];
     if (watched) children.push(el('span', { class: 'ep-watched', text: '✔' }));
     return el('button', {
@@ -55,6 +57,15 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
       onClick: () => nav.go('player', {
         type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4',
         name: `${name} — ${label}`, image: cover, directUrl: ep.direct_source,
+        // Tüm sezon bölümlerini + bu bölümün sırasını geçir ki oynatıcı "sıradaki bölüm"e geçebilsin.
+        episodes: list.map((e) => ({
+          streamId: parseInt(e.id, 10),
+          name: `${name} — ${epLabel(e)}`,
+          extension: e.container_extension || 'mp4',
+          directUrl: e.direct_source,
+          image: cover,
+        })),
+        index: idx,
       }),
     }, children);
   }
@@ -78,7 +89,8 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
         const seasons = Object.keys(episodes).sort((a, b) => (parseInt(a, 10) || 0) - (parseInt(b, 10) || 0));
         const showSeason = (sn: string): void => {
           epList.innerHTML = '';
-          for (const ep of episodes[sn] || []) epList.appendChild(episodeRow(ep));
+          const list = episodes[sn] || [];
+          list.forEach((ep, idx) => epList.appendChild(episodeRow(ep, list, idx)));
         };
         tabs.innerHTML = '';
         seasons.forEach((sn, idx) => {

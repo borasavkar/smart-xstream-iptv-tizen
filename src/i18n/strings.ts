@@ -145,6 +145,10 @@ const tr: Dict = {
   qp_seasons: 'Sezon',
   qp_preview_failed: 'Önizleme oynatılamadı',
 
+  // oynatıcı — sıradaki bölüm
+  next_episode: 'Sıradaki Bölüm',
+  next_episode_play: '▶ Sonraki Bölümü Oynat',
+
   // dev
   dev_player_test: '🔧 Oynatıcı Testi',
   coming_phase2: '%1$s — Aşama 2’de gelecek',
@@ -195,6 +199,7 @@ const en: Dict = {
   dev_player_test: '🔧 Player Test', coming_phase2: '%1$s — coming soon',
   qp_play: '▶ Play Now', qp_details: 'Full Details', qp_close_hint: 'Press Back to close',
   qp_loading: 'Loading…', qp_seasons: 'Seasons', qp_preview_failed: 'Preview unavailable',
+  next_episode: 'Up Next', next_episode_play: '▶ Play Next Episode',
 };
 
 const de: Dict = {

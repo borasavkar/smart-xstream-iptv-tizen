@@ -388,3 +388,11 @@ body.qp-open #root { opacity: 0; transition: opacity .25s ease; }
 .qp-actions { display: flex; align-items: center; gap: 20px; margin-top: 14px; }
 .qp-btn { font-size: 23px; padding: 13px 32px; }
 .qp-hint { font-size: 18px; color: #6B7C88; margin-left: 10px; }
+
+/* ---- Sıradaki Bölüm kartı (oynatıcı, Netflix tarzı) ---- */
+.next-ep-card { position: absolute; right: 56px; bottom: 220px; z-index: 8; display: none; flex-direction: column; gap: 12px; max-width: 560px; padding: 22px 28px; background: rgba(8,13,21,.94); border: 1.5px solid rgba(0,240,255,.4); border-radius: 16px; box-shadow: 0 16px 50px rgba(0,0,0,.65), 0 0 40px rgba(0,240,255,.15); }
+.next-ep-card.show { display: flex; animation: next-ep-pop .32s cubic-bezier(.16,1,.3,1); }
+@keyframes next-ep-pop { from { opacity: 0; transform: translateY(28px) scale(.96); } to { opacity: 1; transform: none; } }
+.next-ep-label { font-size: 20px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--neon-blue); }
+.next-ep-name { font-size: 30px; font-weight: 800; color: #fff; line-height: 1.2; max-width: 520px; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.next-ep-btn { align-self: flex-start; font-size: 24px; padding: 13px 30px; margin-top: 4px; }
