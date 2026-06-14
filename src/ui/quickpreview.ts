@@ -19,14 +19,15 @@ import { setOverlayKeyHandler } from '../app/overlay';
 import { KEY } from '../input/remote';
 import { t } from '../i18n/strings';
 
-const DWELL_MS = 2000;        // poster üstünde bekleme eşiği
+const DWELL_MS = 5000;        // poster üstünde bekleme eşiği (5 sn)
 const PREVIEW_MAX_MS = 45000; // önizleme klibi süresi (sonra posterine döner)
 const POP_ANIM_MS = 520;      // 3D açılış bitmeden video başlatma (AVPlay rect sabittir)
+const CLOSE_ANIM_MS = 420;    // kapanış (geri dönme) animasyonu süresi
 
-// Kart: 1920×1080 tasarım uzayında 3/4 ekran, tam ortada.
+// Kart: 1920×1080 tasarım uzayında 3/4 ekran, tam ortada. Video TÜM kartı kaplar
+// (16:9 = 1440×810), künye altta degrade ile videonun üzerine biner.
 const CARD = { x: 240, y: 135, w: 1440, h: 810 };
-const VIDEO_H = 460; // kartın üst video bölümü
-const VIEWPORT = { x: CARD.x, y: CARD.y, w: CARD.w, h: VIDEO_H };
+const VIEWPORT = { x: CARD.x, y: CARD.y, w: CARD.w, h: CARD.h };
 
 interface EpisodeLite { streamId: number; name?: string; extension?: string; directUrl?: string; image?: string; }
 interface PlayParams { type: 'movie' | 'series'; streamId: number; extension: string; name: string; image?: string; directUrl?: string; categoryId?: string; episodes?: EpisodeLite[]; index?: number; }
@@ -131,16 +132,23 @@ function openPreview(item: PosterItem, origin: HTMLElement, onOpenDetails: () =>
 
   let playParams: PlayParams | null = null;
 
+  let closing = false;
   function close(restoreFocus: boolean): void {
-    if (!isOpen) return;
-    isOpen = false; openSeq++; lastCloseTs = Date.now();
+    if (!isOpen || closing) return;
+    closing = true; isOpen = false; openSeq++; lastCloseTs = Date.now();
     clearTimeout(capTimer); clearTimeout(dwellTimer); clearTimeout(playTimer);
     preview.stop();
     if (video) video.muted = false; // tam ekran oynatma sessiz kalmasın
     setOverlayKeyHandler(null);
+    // Geri dönme efekti: ana ekran (kart altındaki #root) yeniden belirir,
+    // kart küçülerek-eğilerek kaybolur, karartma şeritleri solar; sonra DOM kaldırılır.
     document.body.classList.remove('qp-open');
-    root.remove();
-    if (restoreFocus && document.contains(origin)) origin.focus();
+    card.classList.add('qp-closing');
+    root.querySelectorAll('.qp-dim').forEach((d) => d.classList.add('qp-dim-out'));
+    window.setTimeout(() => {
+      root.remove();
+      if (restoreFocus && document.contains(origin)) origin.focus();
+    }, CLOSE_ANIM_MS);
   }
 
   function playNow(): void {

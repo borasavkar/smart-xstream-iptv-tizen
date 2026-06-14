@@ -101,7 +101,8 @@ export class AVPlayer {
     v.style.width = vp ? vp.w + 'px' : '';
     v.style.height = vp ? vp.h + 'px' : '';
     v.style.zIndex = vp ? '39' : '';
-    v.style.objectFit = vp ? 'cover' : '';
+    // Önizlemede tüm video karesi görünsün (kırpma yok), bölgede ortalı dursun.
+    v.style.objectFit = vp ? 'contain' : '';
     v.style.display = 'block';
     v.src = opts.url;
     v.onwaiting = () => this.setState('buffering');
