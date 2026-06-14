@@ -213,9 +213,44 @@ const LANG_NAMES: Record<string, string> = {
   tr: 'Türkçe', tur: 'Türkçe', en: 'İngilizce', eng: 'İngilizce', de: 'Almanca', ger: 'Almanca', deu: 'Almanca',
   fr: 'Fransızca', fra: 'Fransızca', fre: 'Fransızca', ru: 'Rusça', rus: 'Rusça', ar: 'Arapça', ara: 'Arapça',
   es: 'İspanyolca', spa: 'İspanyolca', it: 'İtalyanca', ita: 'İtalyanca', pt: 'Portekizce', por: 'Portekizce',
-  nl: 'Felemenkçe', dut: 'Felemenkçe', pl: 'Lehçe', pol: 'Lehçe',
+  nl: 'Felemenkçe', dut: 'Felemenkçe', nld: 'Felemenkçe', pl: 'Lehçe', pol: 'Lehçe',
+  zh: 'Çince', chi: 'Çince', zho: 'Çince', ja: 'Japonca', jpn: 'Japonca', ko: 'Korece', kor: 'Korece',
+  hi: 'Hintçe', hin: 'Hintçe', fa: 'Farsça', per: 'Farsça', fas: 'Farsça', ur: 'Urduca', urd: 'Urduca',
+  el: 'Yunanca', gre: 'Yunanca', ell: 'Yunanca', sv: 'İsveççe', swe: 'İsveççe', no: 'Norveççe', nor: 'Norveççe',
+  nb: 'Norveççe', da: 'Danca', dan: 'Danca', fi: 'Fince', fin: 'Fince', cs: 'Çekçe', cze: 'Çekçe', ces: 'Çekçe',
+  hu: 'Macarca', hun: 'Macarca', ro: 'Rumence', rum: 'Rumence', ron: 'Rumence', bg: 'Bulgarca', bul: 'Bulgarca',
+  sr: 'Sırpça', srp: 'Sırpça', hr: 'Hırvatça', hrv: 'Hırvatça', uk: 'Ukraynaca', ukr: 'Ukraynaca',
+  he: 'İbranice', heb: 'İbranice', th: 'Tayca', tha: 'Tayca', vi: 'Vietnamca', vie: 'Vietnamca',
+  id: 'Endonezce', ind: 'Endonezce', az: 'Azerice', aze: 'Azerice', ka: 'Gürcüce', kat: 'Gürcüce',
 };
-function langName(code: string): string { return LANG_NAMES[code.toLowerCase()] ?? code.toUpperCase(); }
+function langName(code: string): string {
+  const c = code.toLowerCase();
+  if (LANG_NAMES[c]) return LANG_NAMES[c];
+  // Zaten tam ad gelmiş olabilir (ör. "English") → ilk harf büyük döndür.
+  if (c.length > 3) return code.charAt(0).toUpperCase() + code.slice(1);
+  return code.toUpperCase();
+}
+
+// AVPlay'in AUDIO/TEXT iz extra_info'sundan dili çıkar. Firmware'e göre anahtar
+// adı değişir (language, lang, track_lang, langCode, language_code, ISO_639…);
+// JSON değilse düz kodun kendisi dönebilir. Adında "lang" geçen tüm anahtarları
+// ve bilinen anahtarları tarayıp ilk geçerli değeri al.
+function trackLang(info: Record<string, unknown> | null, extra: string): string | undefined {
+  const cands: string[] = [];
+  if (info) {
+    for (const k of Object.keys(info)) if (/lang/i.test(k)) cands.push(String(info[k] ?? ''));
+    for (const k of ['language', 'lang', 'track_lang', 'langCode', 'language_code', 'lang_code', 'ISO_639', 'iso_639', 'audioLang', 'subtitleLang']) {
+      if (info[k] != null) cands.push(String(info[k]));
+    }
+  } else if (extra) {
+    cands.push(extra); // JSON değil → düz dil kodu olabilir
+  }
+  for (const c of cands) {
+    const v = c.trim().toLowerCase();
+    if (v && v !== 'und' && v !== 'unknown' && v !== 'unk' && v !== 'null' && v !== 'none') return v;
+  }
+  return undefined;
+}
 
 function avTrackMeta(type: TrackType, extra: string, index: number): { label: string; lang?: string; height?: number } {
   const info = parseTrackInfo(extra);
@@ -224,7 +259,8 @@ function avTrackMeta(type: TrackType, extra: string, index: number): { label: st
     const h = Number(info?.['Height'] ?? info?.['height'] ?? 0);
     return { label: w && h ? `${w}x${h}` : String(index + 1), height: h || undefined };
   }
-  const raw = String(info?.['language'] ?? info?.['lang'] ?? '').trim();
-  const lang = raw && raw.toLowerCase() !== 'und' ? raw.toLowerCase() : undefined;
-  return { label: lang ? langName(lang) : String(index + 1), lang };
+  const lang = trackLang(info, extra);
+  // Dil bulunamazsa numara yerine "Altyazı N" / "Ses N" daha anlaşılır.
+  const fallback = (type === 'TEXT' ? 'Altyazı ' : 'Ses ') + (index + 1);
+  return { label: lang ? langName(lang) : fallback, lang };
 }
