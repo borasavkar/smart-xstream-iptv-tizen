@@ -220,9 +220,13 @@ button[disabled] { opacity: .6; cursor: default; }
 .chip-btn.active { background: rgba(0,240,255,.18); border-color: var(--neon-blue); color: var(--neon-blue); }
 .chip-btn:focus, .season-tab:focus { box-shadow: 0 0 0 3px rgba(0,240,255,.4); transform: scale(1.05); border-color: var(--neon-blue); }
 .grid-wrap { flex: 1; overflow-y: auto; padding: 8px 56px 56px; }
-/* Film/dizi listesi: satır başına EN FAZLA 3 büyük kapak. */
-.poster-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px 36px; justify-content: stretch; }
-.poster-grid .poster, .poster-grid .poster-img { width: 100%; }
+/* Film/dizi listesi: satır başına TAM 3 büyük kapak. Sabit-piksel sütun
+   (1fr DEĞİL): eski Tizen Chromium'da fr çözümlemesi flex kapsayıcı içinde
+   bazen şaşıp sütun sayısını oynatıyordu — sabit genişlik filmler/diziler
+   render'ını birebir aynı tutar. Kapak en-boyu ne olursa olsun (geniş film
+   afişi / dikey dizi posteri) hücre 578×330'a kırpılır → düzen tekdüze. */
+.poster-grid { display: grid; grid-template-columns: repeat(3, 578px); gap: 40px 36px; justify-content: center; }
+.poster-grid .poster, .poster-grid .poster-img { width: 578px; }
 .poster-grid .poster-img { height: 330px; }
 .poster-grid .poster-title { font-size: 26px; }
 .poster-grid .poster:focus { transform: scale(1.04); } /* büyük kapakta taşmayı önlemek için daha az büyüt */
