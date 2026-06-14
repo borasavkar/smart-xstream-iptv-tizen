@@ -20,7 +20,8 @@ export function liveCategoriesScreen(): Screen {
   let query = '';
 
   const chips = el('div', { class: 'chips' });
-  const gridBox = el('div', { class: 'grid-wrap' });
+  // live-grid: satır başına 5 daha küçük hücre + kanal logoları (kırpmadan, ortalı).
+  const gridBox = el('div', { class: 'grid-wrap live-grid' });
   const root = el('div', { class: 'screen grid-screen' }, [
     screenHeader(t('title_live'), { searchHint: t('hint_search_channel'), onSearch: (q) => { query = q; renderGrid(); } }),
     chips, gridBox,

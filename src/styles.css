@@ -231,6 +231,14 @@ button[disabled] { opacity: .6; cursor: default; }
 .poster-grid .poster-title { font-size: 26px; }
 .poster-grid .poster:focus { transform: scale(1.04); } /* büyük kapakta taşmayı önlemek için daha az büyüt */
 
+/* Canlı kanallar: satır başına 5 daha küçük hücre + kanal logosu (kırpmadan,
+   ortalı; logolar afiş değil, tüm logo görünmeli). */
+.live-grid .poster-grid { grid-template-columns: repeat(5, 340px); gap: 30px 24px; }
+.live-grid .poster-grid .poster, .live-grid .poster-grid .poster-img { width: 340px; }
+.live-grid .poster-grid .poster-img { height: 200px; background-size: contain; background-repeat: no-repeat; background-color: #0E1B2A; }
+.live-grid .poster-grid .poster-title { font-size: 20px; }
+.live-grid .poster-grid .poster:focus { transform: scale(1.06); }
+
 /* detail */
 .detail-screen > * { position: relative; z-index: 1; }
 .detail-backdrop { position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 0; background-size: cover; background-position: center; opacity: .16; filter: blur(7px); }
