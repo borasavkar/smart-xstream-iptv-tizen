@@ -140,7 +140,14 @@ export class AVPlayer {
       try {
         return webapis.avplay.getTotalTrackInfo()
           .filter((tr) => tr.type === type)
-          .map((tr) => ({ index: tr.index, type, ...avTrackMeta(type, tr.extra_info, tr.index) }));
+          .map((tr) => {
+            // extra_info bazı firmware'lerde extraInfo / extra olarak gelebilir,
+            // ayrıca zaten obje (string değil) olabilir → hepsini stringe çevir.
+            const t = tr as unknown as Record<string, unknown>;
+            const raw = t.extra_info ?? t.extraInfo ?? t.extra ?? '';
+            const extraStr = typeof raw === 'string' ? raw : (() => { try { return JSON.stringify(raw); } catch { return ''; } })();
+            return { index: tr.index, type, ...avTrackMeta(type, extraStr, tr.index) };
+          });
       } catch { return []; }
     }
     if (this.video && type === 'TEXT') {
@@ -231,23 +238,44 @@ function langName(code: string): string {
   return code.toUpperCase();
 }
 
+// Tam dil adı → kod (bazı kaynaklar kodu değil adı yazar).
+const NAME_TO_CODE: Record<string, string> = {
+  turkish: 'tr', türkçe: 'tr', turkce: 'tr', english: 'en', ingilizce: 'en', german: 'de', deutsch: 'de', almanca: 'de',
+  french: 'fr', français: 'fr', francais: 'fr', fransızca: 'fr', russian: 'ru', rusça: 'ru', arabic: 'ar', arapça: 'ar',
+  spanish: 'es', español: 'es', espanol: 'es', ispanyolca: 'es', italian: 'it', italiano: 'it', italyanca: 'it',
+  portuguese: 'pt', português: 'pt', dutch: 'nl', nederlands: 'nl', polish: 'pl', polski: 'pl', chinese: 'zh',
+  japanese: 'ja', korean: 'ko', hindi: 'hi', persian: 'fa', farsi: 'fa', urdu: 'ur', greek: 'el', swedish: 'sv',
+  norwegian: 'no', danish: 'da', finnish: 'fi', czech: 'cs', hungarian: 'hu', romanian: 'ro', bulgarian: 'bg',
+  serbian: 'sr', croatian: 'hr', ukrainian: 'uk', hebrew: 'he', thai: 'th', vietnamese: 'vi', indonesian: 'id',
+  azerbaijani: 'az', azerice: 'az', georgian: 'ka',
+};
+// Değer gerçekten bir dil mi? (bilinen kod ya da tam ad)
+function asLang(v: string): string | undefined {
+  const x = v.trim().toLowerCase();
+  if (!x || x === 'und' || x === 'unknown' || x === 'unk' || x === 'null' || x === 'none' || x === 'qaa') return undefined;
+  if (LANG_NAMES[x]) return x;
+  if (NAME_TO_CODE[x]) return NAME_TO_CODE[x];
+  return undefined;
+}
+
 // AVPlay'in AUDIO/TEXT iz extra_info'sundan dili çıkar. Firmware'e göre anahtar
-// adı değişir (language, lang, track_lang, langCode, language_code, ISO_639…);
-// JSON değilse düz kodun kendisi dönebilir. Adında "lang" geçen tüm anahtarları
-// ve bilinen anahtarları tarayıp ilk geçerli değeri al.
+// adı değişir (language, lang, track_lang, langCode, ISO_639, Language…). Önce
+// "lang" içeren/bilinen anahtarlar; sonra HERHANGİ bir değer bilinen bir dil
+// koduysa onu kullan (anahtar adı ne olursa olsun). JSON değilse düz kod denenir.
 function trackLang(info: Record<string, unknown> | null, extra: string): string | undefined {
-  const cands: string[] = [];
   if (info) {
-    for (const k of Object.keys(info)) if (/lang/i.test(k)) cands.push(String(info[k] ?? ''));
+    const keyed: string[] = [];
+    for (const k of Object.keys(info)) if (/lang/i.test(k)) keyed.push(String(info[k] ?? ''));
     for (const k of ['language', 'lang', 'track_lang', 'langCode', 'language_code', 'lang_code', 'ISO_639', 'iso_639', 'audioLang', 'subtitleLang']) {
-      if (info[k] != null) cands.push(String(info[k]));
+      if (info[k] != null) keyed.push(String(info[k]));
     }
+    // 1) dil-anahtarlı değerler: ham kodu da kabul et (bilinmeyen kodu da göster)
+    for (const c of keyed) { const v = c.trim().toLowerCase(); if (v && v !== 'und' && v !== 'unknown' && v !== 'unk' && v !== 'null' && v !== 'none') return v; }
+    // 2) herhangi bir değer bilinen bir dil mi
+    for (const k of Object.keys(info)) { const m = asLang(String(info[k] ?? '')); if (m) return m; }
   } else if (extra) {
-    cands.push(extra); // JSON değil → düz dil kodu olabilir
-  }
-  for (const c of cands) {
-    const v = c.trim().toLowerCase();
-    if (v && v !== 'und' && v !== 'unknown' && v !== 'unk' && v !== 'null' && v !== 'none') return v;
+    const m = asLang(extra); if (m) return m;
+    const v = extra.trim().toLowerCase(); if (/^[a-z]{2,3}$/.test(v)) return v;
   }
   return undefined;
 }
@@ -260,7 +288,9 @@ function avTrackMeta(type: TrackType, extra: string, index: number): { label: st
     return { label: w && h ? `${w}x${h}` : String(index + 1), height: h || undefined };
   }
   const lang = trackLang(info, extra);
-  // Dil bulunamazsa numara yerine "Altyazı N" / "Ses N" daha anlaşılır.
-  const fallback = (type === 'TEXT' ? 'Altyazı ' : 'Ses ') + (index + 1);
-  return { label: lang ? langName(lang) : fallback, lang };
+  if (lang) return { label: langName(lang), lang };
+  // Dil çözülemedi: numara + TEŞHİS için ham extra_info (gerçek anahtarı görelim).
+  const dbg = (extra || '').replace(/\s+/g, '').slice(0, 70);
+  const base = (type === 'TEXT' ? 'Altyazı ' : 'Ses ') + (index + 1);
+  return { label: dbg ? `${base}  ⟨${dbg}⟩` : base };
 }
