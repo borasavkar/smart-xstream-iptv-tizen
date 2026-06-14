@@ -52,6 +52,8 @@ export function moveFocus(dir: Dir): void {
   const ccx = c.left + c.width / 2;
   const ccy = c.top + c.height / 2;
 
+  const horizontal = dir === 'left' || dir === 'right';
+
   let best: HTMLElement | null = null;
   let bestScore = Infinity;
 
@@ -67,10 +69,19 @@ export function moveFocus(dir: Dir): void {
       dir === 'up' ? dy < -4 : dy > 4;
     if (!inDir) continue;
 
-    const horizontal = dir === 'left' || dir === 'right';
+    // Çapraz eksende ÖRTÜŞME (aynı satır/sütun) belirleyici olsun: sağ/sol için
+    // dikey örtüşen aday, çapraz uzaktaki (örn. üstteki kategori çubuğu) adaya
+    // her zaman tercih edilir. Aksi halde ilk posterden sağa basınca yandaki
+    // poster 578px uzakta diye üstteki "Tüm Filmler" çipi kazanıyordu.
+    const overlap = horizontal
+      ? Math.min(r.bottom, c.bottom) - Math.max(r.top, c.top)
+      : Math.min(r.right, c.right) - Math.max(r.left, c.left);
+    const aligned = overlap > 0;
+
     const primary = horizontal ? Math.abs(dx) : Math.abs(dy);
     const cross = horizontal ? Math.abs(dy) : Math.abs(dx);
-    const score = primary + cross * 2; // prefer aligned, then close
+    // Hizalı adaylar her zaman önce gelir (büyük ceza); sonra yakınlık.
+    const score = primary + cross * 3 + (aligned ? 0 : 1e6);
     if (score < bestScore) { bestScore = score; best = el; }
   }
 
