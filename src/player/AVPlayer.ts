@@ -65,8 +65,15 @@ export class AVPlayer {
       const vp = opts.viewport;
       av.setDisplayRect(vp?.x ?? 0, vp?.y ?? 0, vp?.w ?? 1920, vp?.h ?? 1080);
       if (this.obj) this.obj.style.display = 'block';
-      // Önizleme penceresinde en-boy oranını koru (LETTER_BOX); tam ekranda doldur.
-      try { av.setDisplayMethod(vp ? 'PLAYER_DISPLAY_MODE_LETTER_BOX' : 'PLAYER_DISPLAY_MODE_FULL_SCREEN'); } catch { /* older firmware */ }
+      // Önizleme penceresi: videoyu boşluk bırakmadan tüm dikdörtgene yay (oranı
+      // koruyarak kırp = "cover"). CROPPED_FULL bazı eski firmware'lerde yok →
+      // FULL_SCREEN'e, o da yoksa LETTER_BOX'a düş. Tam ekranda her zaman FULL_SCREEN.
+      if (vp) {
+        try { av.setDisplayMethod('PLAYER_DISPLAY_MODE_CROPPED_FULL'); }
+        catch { try { av.setDisplayMethod('PLAYER_DISPLAY_MODE_FULL_SCREEN'); } catch { /* */ } }
+      } else {
+        try { av.setDisplayMethod('PLAYER_DISPLAY_MODE_FULL_SCREEN'); } catch { /* older firmware */ }
+      }
       try { av.setStreamingProperty('USER_AGENT', opts.userAgent || DEFAULT_UA); } catch (e) { this.log('UA: ' + msg(e)); }
 
       av.setListener({
@@ -101,8 +108,8 @@ export class AVPlayer {
     v.style.width = vp ? vp.w + 'px' : '';
     v.style.height = vp ? vp.h + 'px' : '';
     v.style.zIndex = vp ? '39' : '';
-    // Önizlemede tüm video karesi görünsün (kırpma yok), bölgede ortalı dursun.
-    v.style.objectFit = vp ? 'contain' : '';
+    // Önizlemede video kartın tamamını kaplasın (boşluk bırakmadan kırparak doldur).
+    v.style.objectFit = vp ? 'cover' : '';
     v.style.display = 'block';
     v.src = opts.url;
     v.onwaiting = () => this.setState('buffering');

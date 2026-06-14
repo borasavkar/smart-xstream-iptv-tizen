@@ -54,6 +54,9 @@ export function filmsScreen(): Screen {
       cats = c;
       renderChips();
       renderGrid();
+      // Ekran üst menüde (kategori çubuğu) açılsın — odak ‹ geri butonu yerine
+      // aktif/ilk kategori çipinde başlasın.
+      requestAnimationFrame(() => (chips.querySelector('.chip-btn.active') as HTMLElement | null ?? chips.querySelector('.chip-btn') as HTMLElement | null)?.focus());
     },
   };
 }
