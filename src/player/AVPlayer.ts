@@ -262,19 +262,29 @@ function asLang(v: string): string | undefined {
 // adı değişir (language, lang, track_lang, langCode, ISO_639, Language…). Önce
 // "lang" içeren/bilinen anahtarlar; sonra HERHANGİ bir değer bilinen bir dil
 // koduysa onu kullan (anahtar adı ne olursa olsun). JSON değilse düz kod denenir.
+const NOT_LANG = new Set(['und', 'unknown', 'unk', 'null', 'none', 'qaa', '']);
 function trackLang(info: Record<string, unknown> | null, extra: string): string | undefined {
+  // 1) HAM STRING REGEX — en güvenilir: bazı Tizen firmware'leri extra_info'yu
+  //    JSON.parse'ın reddettiği biçimde döndürüyor (fazladan virgül vb.), o yüzden
+  //    obje taraması çalışmıyordu. Adında "lang" geçen herhangi bir alanın değerini
+  //    doğrudan metinden çek ("track_lang":"tur" → tur).
+  if (extra) {
+    const m = extra.match(/"[^"]*lang[^"]*"\s*:\s*"([A-Za-z]{2,})"/i);
+    if (m) { const v = m[1].toLowerCase(); if (!NOT_LANG.has(v)) return v; }
+  }
+  // 2) JSON parse edilebildiyse anahtar/değer taraması.
   if (info) {
     const keyed: string[] = [];
     for (const k of Object.keys(info)) if (/lang/i.test(k)) keyed.push(String(info[k] ?? ''));
     for (const k of ['language', 'lang', 'track_lang', 'langCode', 'language_code', 'lang_code', 'ISO_639', 'iso_639', 'audioLang', 'subtitleLang']) {
       if (info[k] != null) keyed.push(String(info[k]));
     }
-    // 1) dil-anahtarlı değerler: ham kodu da kabul et (bilinmeyen kodu da göster)
-    for (const c of keyed) { const v = c.trim().toLowerCase(); if (v && v !== 'und' && v !== 'unknown' && v !== 'unk' && v !== 'null' && v !== 'none') return v; }
-    // 2) herhangi bir değer bilinen bir dil mi
-    for (const k of Object.keys(info)) { const m = asLang(String(info[k] ?? '')); if (m) return m; }
-  } else if (extra) {
-    const m = asLang(extra); if (m) return m;
+    for (const c of keyed) { const v = c.trim().toLowerCase(); if (!NOT_LANG.has(v)) return v; }
+    for (const k of Object.keys(info)) { const mm = asLang(String(info[k] ?? '')); if (mm) return mm; }
+  }
+  // 3) düz dil kodu / tam ad
+  if (extra) {
+    const mm = asLang(extra); if (mm) return mm;
     const v = extra.trim().toLowerCase(); if (/^[a-z]{2,3}$/.test(v)) return v;
   }
   return undefined;
@@ -289,8 +299,6 @@ function avTrackMeta(type: TrackType, extra: string, index: number): { label: st
   }
   const lang = trackLang(info, extra);
   if (lang) return { label: langName(lang), lang };
-  // Dil çözülemedi: numara + TEŞHİS için ham extra_info (gerçek anahtarı görelim).
-  const dbg = (extra || '').replace(/\s+/g, '').slice(0, 70);
-  const base = (type === 'TEXT' ? 'Altyazı ' : 'Ses ') + (index + 1);
-  return { label: dbg ? `${base}  ⟨${dbg}⟩` : base };
+  // Dil yok (ör. track_lang "und") → temiz "Altyazı N" / "Ses N".
+  return { label: (type === 'TEXT' ? 'Altyazı ' : 'Ses ') + (index + 1) };
 }
