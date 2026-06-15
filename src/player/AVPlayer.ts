@@ -161,7 +161,12 @@ export class AVPlayer {
 
   selectTrack(type: TrackType, index: number): void {
     try {
-      if (this.useAVPlay) { webapis.avplay.setSelectTrack(type, index); return; }
+      if (this.useAVPlay) {
+        webapis.avplay.setSelectTrack(type, index);
+        // Altyazı izi seçildiğinde "sessiz altyazı" modunu kapat ki seçilen iz görünsün.
+        if (type === 'TEXT') { try { webapis.avplay.setSilentSubtitle?.(false); } catch { /* */ } }
+        return;
+      }
       if (this.video && type === 'TEXT') {
         const tt = this.video.textTracks;
         for (let i = 0; i < tt.length; i++) tt[i].mode = i === index ? 'showing' : 'disabled';

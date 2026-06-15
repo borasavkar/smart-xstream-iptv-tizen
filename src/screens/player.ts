@@ -105,7 +105,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   let paused = false, resumeMs = 0, resumed = false, lastSaved = 0;
   let curMs = 0, durMs = 0;
   let hideTimer = 0, hudTimer = 0;
-  let menuOpen = false, prefsApplied = false;
+  let menuOpen = false, prefsApplied = false, prefTries = 0;
   let seeking = false, seekTarget = 0, seekTimer = 0;
   let gestureStart = 0, lastTick = 0;     // basılı-tutma sarma jesti zamanlaması
   let settleTarget = -1, settleUntil = 0; // seek sonrası eski konum raporlarını yutma penceresi
@@ -166,11 +166,22 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     styleSubtitle();
   }
   function applyPreferences(): void {
-    const a = player.getTracks('AUDIO').find((tr) => norm(tr.lang) === norm(Settings.audioLang()));
+    const audioTracks = player.getTracks('AUDIO');
+    const textTracks = player.getTracks('TEXT');
+    // İzler henüz hazır değil (HLS/canlıda birkaç sn geç gelebilir) → kısa süre sonra
+    // tekrar dene. İzler geldiğinde tercihleri tek sefer uygula.
+    if (audioTracks.length === 0 && textTracks.length === 0 && prefTries < 6) {
+      prefTries++; window.setTimeout(applyPreferences, 900); return;
+    }
+    // Ses: tercih edilen dil varsa onu seç; YOKSA dokunma → orijinal ses kalır.
+    const a = audioTracks.find((tr) => norm(tr.lang) === norm(Settings.audioLang()));
     if (a) player.selectTrack('AUDIO', a.index);
+    // Altyazı: açıksa tercih edilen dili seç; o dil YOKSA altyazıyı kapat (orijinal,
+    // zorla yabancı altyazı gösterme). "Kapalı" seçiliyse zaten kapat.
     if (Settings.subtitleEnabled()) {
-      const s = player.getTracks('TEXT').find((tr) => norm(tr.lang) === norm(Settings.subtitleLang()));
-      if (s) player.selectTrack('TEXT', s.index);
+      const s = textTracks.find((tr) => norm(tr.lang) === norm(Settings.subtitleLang()));
+      if (s) { player.selectTrack('TEXT', s.index); }
+      else { player.disableSubtitles(); subtitle.style.display = 'none'; }
     } else { player.disableSubtitles(); subtitle.style.display = 'none'; }
     const q = Settings.videoQuality();
     if (q !== 'auto') {
@@ -316,7 +327,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
 
   function playCurrent(directUrl?: string): void {
     if (!profile) { flash('Profil bulunamadı'); return; }
-    prefsApplied = false; resumed = false; paused = false; setPlayGlyph();
+    prefsApplied = false; prefTries = 0; resumed = false; paused = false; setPlayGlyph();
     const url = buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId, type: p.type, extension, directUrl: directUrl ?? p.directUrl });
     document.body.classList.add('playing');
     player.play({ url });
