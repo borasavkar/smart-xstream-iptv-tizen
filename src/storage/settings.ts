@@ -14,6 +14,12 @@ interface SettingsShape {
   subBg: boolean;
   videoQuality: string; // 'auto' | '2160' | '1080' | '720' | '480'
   introSeen: boolean;
+  // OpenSubtitles (dış altyazı): kullanıcının kendi hesabı. Şifre SAKLANMAZ —
+  // yalnızca giriş sonrası dönen token + kullanıcı adı + base_url tutulur.
+  osToken: string;
+  osUser: string;
+  osBaseUrl: string;
+  externalSubs: boolean; // tercih dilinde gömülü altyazı yoksa dıştan ara
 }
 
 const KEY = 'sx_settings';
@@ -36,6 +42,10 @@ function defaults(): SettingsShape {
     subBg: true,
     videoQuality: 'auto',
     introSeen: false,
+    osToken: '',
+    osUser: '',
+    osBaseUrl: '',
+    externalSubs: true,
   };
 }
 
@@ -80,4 +90,13 @@ export const Settings = {
   setSubBg: (v: boolean): void => patch({ subBg: v }),
   videoQuality: (): string => read().videoQuality,
   setVideoQuality: (v: string): void => patch({ videoQuality: v }),
+
+  // OpenSubtitles hesabı
+  osToken: (): string => read().osToken,
+  osUser: (): string => read().osUser,
+  osBaseUrl: (): string => read().osBaseUrl,
+  setOsSession: (user: string, token: string, baseUrl: string): void => patch({ osUser: user, osToken: token, osBaseUrl: baseUrl }),
+  clearOsSession: (): void => patch({ osUser: '', osToken: '', osBaseUrl: '' }),
+  externalSubs: (): boolean => read().externalSubs,
+  setExternalSubs: (v: boolean): void => patch({ externalSubs: v }),
 };

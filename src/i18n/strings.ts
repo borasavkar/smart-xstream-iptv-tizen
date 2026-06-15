@@ -150,6 +150,22 @@ const tr: Dict = {
   next_episode: 'Sıradaki Bölüm',
   next_episode_play: '▶ Sonraki Bölümü Oynat',
 
+  // dış altyazı (OpenSubtitles)
+  os_account: 'OpenSubtitles Hesabı',
+  os_login: 'Giriş Yap', os_logout: 'Çıkış Yap',
+  os_connected: '✓ Bağlı: %s',
+  os_signin_hint: 'Kendi OpenSubtitles hesabınızla giriş yapın — günde 5 ücretsiz altyazı. Şifreniz saklanmaz.',
+  os_bad_login: 'Giriş başarısız',
+  external_subs_auto: 'Eksik altyazıyı otomatik ara',
+  sub_search: '🔎 Altyazı Ara (internet)',
+  sub_searching: 'Altyazı aranıyor…',
+  sub_none: 'Uygun altyazı bulunamadı',
+  sub_loaded: 'Altyazı yüklendi',
+  sub_quota: 'Günlük altyazı indirme kotanız doldu',
+  sub_need_login: 'OpenSubtitles oturumu bitti — Ayarlardan tekrar girin',
+  sub_dl_error: 'Altyazı indirilemedi',
+  sub_off_external: 'İnternet altyazısını kapat',
+
   // dev
   dev_player_test: '🔧 Oynatıcı Testi',
   coming_phase2: '%1$s — Aşama 2’de gelecek',
@@ -201,6 +217,13 @@ const en: Dict = {
   qp_play: '▶ Play Now', qp_details: 'Full Details', qp_close_hint: 'Press Back to close',
   qp_loading: 'Loading…', qp_seasons: 'Seasons', qp_preview_failed: 'Preview unavailable',
   next_episode: 'Up Next', next_episode_play: '▶ Play Next Episode',
+  os_account: 'OpenSubtitles Account', os_login: 'Sign In', os_logout: 'Sign Out', os_connected: '✓ Connected: %s',
+  os_signin_hint: 'Sign in with your own OpenSubtitles account — 5 free subtitles per day. Your password is not stored.',
+  os_bad_login: 'Sign-in failed', external_subs_auto: 'Auto-find missing subtitles',
+  sub_search: '🔎 Find Subtitles (online)', sub_searching: 'Searching subtitles…', sub_none: 'No matching subtitle found',
+  sub_loaded: 'Subtitle loaded', sub_quota: 'Daily subtitle download quota reached',
+  sub_need_login: 'OpenSubtitles session expired — sign in again in Settings', sub_dl_error: 'Could not download subtitle',
+  sub_off_external: 'Turn off online subtitle',
 };
 
 const de: Dict = {

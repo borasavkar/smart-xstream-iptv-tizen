@@ -17,6 +17,8 @@ import { History } from '../storage/history';
 import { t } from '../i18n/strings';
 import { KEY, moveFocus } from '../input/remote';
 import { nav } from '../app/nav';
+import * as OS from '../core/opensubtitles';
+import { cueAt, type Cue } from '../core/srt';
 import type { Screen } from '../app/router';
 
 interface ChannelLite { streamId: number; name?: string; image?: string; directUrl?: string; }
@@ -110,6 +112,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   let gestureStart = 0, lastTick = 0;     // basılı-tutma sarma jesti zamanlaması
   let settleTarget = -1, settleUntil = 0; // seek sonrası eski konum raporlarını yutma penceresi
   let nextEpVisible = false, nextEpDismissed = false; // sıradaki bölüm kartı durumu
+  let extCues: Cue[] = [], extActive = false, extBusy = false; // internetten indirilen altyazı
   let zone: HTMLElement[] = [], zoneIdx = 0;
 
   if (tracks) { const prev = History.get(streamId, p.type); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
@@ -137,6 +140,11 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
         }
         curMs = cur;
         if (!seeking) updateProgress();
+        // İnternetten indirilen altyazı: konuma göre kendi katmanımızda göster.
+        if (extActive) {
+          if (Settings.subtitleEnabled()) { const txt = cueAt(extCues, curMs); subtitle.textContent = txt; subtitle.style.display = txt ? 'inline-block' : 'none'; }
+          else subtitle.style.display = 'none';
+        }
         if (tracks && cur > 0) { const fin = dur > 0 && cur / dur > 0.95; const now = Date.now(); if (fin || now - lastSaved > 5000) { lastSaved = now; save(cur, dur, fin); } }
         // Son NEAR_END_MS içine girince "Sıradaki Bölüm" kartını göster; geri sarılırsa gizle.
         if (isSeries && hasNextEpisode() && durMs > 60000) {
@@ -145,7 +153,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
           else if (nextEpVisible && remaining > NEXT_EP_NEAR_END_MS + 5000) hideNextEp();
         }
       },
-      onSubtitle: (text) => { if (Settings.subtitleEnabled()) { subtitle.textContent = text || ''; subtitle.style.display = text ? 'inline-block' : 'none'; } },
+      onSubtitle: (text) => { if (!extActive && Settings.subtitleEnabled()) { subtitle.textContent = text || ''; subtitle.style.display = text ? 'inline-block' : 'none'; } },
     },
   );
 
@@ -181,6 +189,8 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     if (Settings.subtitleEnabled()) {
       const s = textTracks.find((tr) => norm(tr.lang) === norm(Settings.subtitleLang()));
       if (s) { player.selectTrack('TEXT', s.index); }
+      // Gömülü tercih dili yok → internetten otomatik ara (film/dizi, kullanıcı açtıysa).
+      else if (tracks && Settings.externalSubs() && !extActive && !extBusy) { void loadExternalSubtitle(Settings.subtitleLang()); }
       else { player.disableSubtitles(); subtitle.style.display = 'none'; }
     } else { player.disableSubtitles(); subtitle.style.display = 'none'; }
     const q = Settings.videoQuality();
@@ -191,6 +201,33 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
       if (pick) player.selectTrack('VIDEO', pick.index);
     }
   }
+
+  // İçerik adından sezon/bölüm çıkar (S1E2 / S01B02 gibi) — dizide isabeti artırır.
+  function parseSE(s: string): { season?: number; episode?: number } {
+    const m = s.match(/S(\d{1,2})\s*[EB](\d{1,3})/i);
+    return m ? { season: Number(m[1]), episode: Number(m[2]) } : {};
+  }
+  async function loadExternalSubtitle(lang: string): Promise<boolean> {
+    if (!tracks || extBusy) return false;
+    extBusy = true; flash(t('sub_searching'));
+    try {
+      const { title, year } = OS.cleanTitle(name);
+      const se = parseSE(name);
+      const results = await OS.search(title, lang, { year, season: se.season, episode: se.episode });
+      if (!results.length) { flash(t('sub_none')); return false; }
+      extCues = await OS.downloadCues(results[0].fileId);
+      extActive = true;
+      player.disableSubtitles();              // gömülü altyazıyı sustur, çakışmasın
+      Settings.setSubtitleEnabled(true);
+      flash(t('sub_loaded'));
+      return true;
+    } catch (e) {
+      const code = e instanceof Error ? e.message : String(e);
+      flash(code === 'QUOTA' ? t('sub_quota') : code === 'AUTH' ? t('sub_need_login') : t('sub_dl_error'));
+      return false;
+    } finally { extBusy = false; }
+  }
+  function clearExternalSubtitle(): void { extActive = false; extCues = []; subtitle.textContent = ''; subtitle.style.display = 'none'; }
 
   function refreshHud(): void {
     const info = player.getPlaybackInfo();
@@ -245,12 +282,19 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   }
   function closeMenu(): void { menuOpen = false; menu.classList.remove('show'); menu.innerHTML = ''; showControls(); }
   function openSettingsMenu(): void {
-    openMenu(t('menu_settings'), [
+    const opts: Opt[] = [
       { label: '🔊 ' + t('track_audio'), apply: () => openTrackMenu('AUDIO', t('track_audio')) },
       { label: '💬 ' + t('track_subtitle'), apply: openSubtitleMenu },
       { label: '🅰 ' + t('subtitle_style'), apply: openStyleMenu },
       { label: '⚙ ' + t('track_quality'), apply: openQualityMenu },
-    ]);
+    ];
+    // Film/dizide internetten altyazı ara / kapat.
+    if (tracks) {
+      opts.push(extActive
+        ? { label: t('sub_off_external'), apply: () => { clearExternalSubtitle(); closeMenu(); } }
+        : { label: t('sub_search'), apply: () => { closeMenu(); void loadExternalSubtitle(Settings.subtitleLang()); } });
+    }
+    openMenu(t('menu_settings'), opts);
   }
   function openTrackMenu(type: TrackType, heading: string): void {
     const list = player.getTracks(type);
@@ -328,6 +372,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   function playCurrent(directUrl?: string): void {
     if (!profile) { flash('Profil bulunamadı'); return; }
     prefsApplied = false; prefTries = 0; resumed = false; paused = false; setPlayGlyph();
+    clearExternalSubtitle(); // yeni içerik/bölüm → eski dış altyazıyı bırak (tercih varsa yeniden aranır)
     const url = buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId, type: p.type, extension, directUrl: directUrl ?? p.directUrl });
     document.body.classList.add('playing');
     player.play({ url });

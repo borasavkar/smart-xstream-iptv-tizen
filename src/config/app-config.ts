@@ -28,4 +28,11 @@ export const CONFIG = {
     appId: '',                 // Samsung Apps (DPI) app id
     mode: 'DEV' as 'DEV' | 'PRD',
   },
+
+  // OpenSubtitles dış altyazı. apiKey = uygulamanın "consumer" kimliği (geliştirici
+  // tarafından bir kez alınır, ücretsiz). Kullanıcılar kendi hesaplarıyla giriş yapar.
+  openSubtitles: {
+    apiKey: '0ZoUXlm9XbWU18oGOkVLKRz7jeSQFuEk',
+    userAgent: 'SmartXtreamAIIPTV v1.0',
+  },
 };
