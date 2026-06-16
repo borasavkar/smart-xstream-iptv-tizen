@@ -76,17 +76,40 @@ export function settingsScreen(): Screen {
     const pass = osField(t('hint_password'), 'password');
     const status = el('div', { class: 'os-status-msg' });
     let busy = false;
-    const loginBtn = pill(t('os_login'), false, () => {
+    const doLogin = (): void => {
       if (busy) return;
       const u = user.value.trim(); const p = pass.value;
       if (!u || !p) { status.textContent = t('msg_fill_all_fields'); return; }
       busy = true; status.textContent = t('status_connecting');
       void OS.login(u, p).then((r) => { busy = false; if (r.ok) render(); else status.textContent = r.message || t('os_bad_login'); });
+    };
+    const loginBtn = pill(t('os_login'), false, doLogin);
+
+    // TV klavyesi "Bitti"/Enter ile sıradaki alana geç (profil formuyla aynı):
+    // metin kutusunda SAĞ ok imleci taşıdığından, alanlar arası geçiş bu tuşla olur.
+    // Odak blur ile kapatılıp gecikmeyle taşınır ki SmartThings klavyesi yeniden bağlansın.
+    const fields = [user, pass];
+    const typed = new Set<HTMLInputElement>();
+    fields.forEach((inp, idx) => {
+      inp.addEventListener('focus', () => typed.delete(inp));
+      inp.addEventListener('input', () => typed.add(inp));
+      inp.addEventListener('keydown', (e: KeyboardEvent) => {
+        if (e.keyCode !== 65376 && e.keyCode !== 13) return;
+        if (e.keyCode === 13 && !typed.has(inp)) return;
+        e.preventDefault(); e.stopPropagation();
+        inp.blur();
+        const next: HTMLElement = fields[idx + 1] ?? loginBtn;
+        window.setTimeout(() => {
+          next.focus();
+          if (next instanceof HTMLInputElement) { const end = next.value.length; try { next.setSelectionRange(end, end); } catch { /* */ } }
+        }, 400);
+      });
     });
+
     return el('section', { class: 'settings-section' }, [
       el('h2', { class: 'settings-h', text: t('os_account') }),
       el('p', { class: 'settings-hint', text: t('os_signin_hint') }),
-      el('div', { class: 'os-login-row' }, [user, pass, loginBtn]),
+      el('div', { class: 'os-login-form' }, [user, pass, loginBtn]),
       status,
     ]);
   }

@@ -336,8 +336,10 @@ button[disabled] { opacity: .6; cursor: default; }
 .opt-pill:focus { border-color: var(--neon-blue); box-shadow: 0 0 0 3px rgba(0,240,255,.4); transform: scale(1.06); }
 /* OpenSubtitles hesap bölümü */
 .settings-hint { font-size: 18px; color: var(--text-2); margin-bottom: 14px; max-width: 900px; }
-.os-login-row { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-.os-login-row .fld { width: 320px; }
+/* Dikey form: alanlar arası Aşağı/Bitti ile geçilir (metin kutusunda Sağ ok imleci taşır). */
+.os-login-form { display: flex; flex-direction: column; gap: 16px; max-width: 460px; align-items: flex-start; }
+.os-login-form .fld { width: 100%; }
+.os-login-form .opt-pill { margin-top: 4px; }
 .os-status { font-size: 22px; color: var(--neon-green); align-self: center; margin-right: 8px; }
 .os-status-msg { font-size: 20px; color: var(--neon-pink); margin-top: 12px; min-height: 24px; }
 
