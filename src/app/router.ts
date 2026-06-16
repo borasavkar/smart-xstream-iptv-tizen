@@ -1,8 +1,9 @@
 // Minimal screen router: a navigation stack that mounts one Screen at a time
 // into a root element, plus global remote-key handling (arrows → spatial focus,
 // Enter → activate, Back → pop/exit). Screens can intercept keys via onKey.
-import { KEY, moveFocus, focusFirst, exitApp } from '../input/remote';
+import { KEY, moveFocus, focusFirst } from '../input/remote';
 import { overlayKey } from './overlay';
+import { showExitConfirm } from './exit-confirm';
 
 export interface Screen {
   el: HTMLElement;
@@ -45,7 +46,8 @@ export class Router {
   }
 
   back(): void {
-    if (this.stack.length <= 1) { exitApp(); return; }
+    // Ana ekranda (geri gidilecek yer yok) çıkış onayı göster (Samsung Return-key politikası).
+    if (this.stack.length <= 1) { showExitConfirm(); return; }
     this.stack.pop();
     const top = this.stack[this.stack.length - 1];
     this.mount(top.name, top.params);

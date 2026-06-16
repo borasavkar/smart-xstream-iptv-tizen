@@ -146,6 +146,11 @@ const tr: Dict = {
   qp_seasons: 'Sezon',
   qp_preview_failed: 'Önizleme oynatılamadı',
 
+  // çıkış onayı (Samsung Return-key politikası)
+  exit_title: 'Uygulamadan çıkmak istiyor musunuz?',
+  exit_yes: 'Çıkış',
+  exit_no: 'İptal',
+
   // oynatıcı — sıradaki bölüm
   next_episode: 'Sıradaki Bölüm',
   next_episode_play: '▶ Sonraki Bölümü Oynat',
@@ -216,6 +221,7 @@ const en: Dict = {
   dev_player_test: '🔧 Player Test', coming_phase2: '%1$s — coming soon',
   qp_play: '▶ Play Now', qp_details: 'Full Details', qp_close_hint: 'Press Back to close',
   qp_loading: 'Loading…', qp_seasons: 'Seasons', qp_preview_failed: 'Preview unavailable',
+  exit_title: 'Exit the application?', exit_yes: 'Exit', exit_no: 'Cancel',
   next_episode: 'Up Next', next_episode_play: '▶ Play Next Episode',
   os_account: 'OpenSubtitles Account', os_login: 'Sign In', os_logout: 'Sign Out', os_connected: '✓ Connected: %s',
   os_signin_hint: 'Sign in with your own OpenSubtitles account — 5 free subtitles per day. Your password is not stored.',
