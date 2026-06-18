@@ -54,6 +54,7 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
     if (watched) children.push(el('span', { class: 'ep-watched', text: '✔' }));
     return el('button', {
       class: 'list-row ep-row' + (watched ? ' watched' : ''), focusable: true,
+      attrs: { 'data-ep': ep.id },
       onClick: () => nav.go('player', {
         type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4',
         name: `${name} — ${label}`, image: cover, directUrl: ep.direct_source,
@@ -93,14 +94,35 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
           list.forEach((ep, idx) => epList.appendChild(episodeRow(ep, list, idx)));
         };
         tabs.innerHTML = '';
-        seasons.forEach((sn, idx) => {
-          const tab = el('button', {
-            class: 'season-tab' + (idx === 0 ? ' active' : ''), focusable: true, text: `${t('text_season')} ${sn}`,
-            onClick: () => { Array.from(tabs.children).forEach((c) => c.classList.remove('active')); tab.classList.add('active'); showSeason(sn); },
-          });
+        const tabBySeason: Record<string, HTMLElement> = {};
+        const activateSeason = (sn: string): void => {
+          Array.from(tabs.children).forEach((c) => c.classList.remove('active'));
+          tabBySeason[sn]?.classList.add('active');
+          showSeason(sn);
+        };
+        seasons.forEach((sn) => {
+          const tab = el('button', { class: 'season-tab', focusable: true, text: `${t('text_season')} ${sn}`, onClick: () => activateSeason(sn) });
+          tabBySeason[sn] = tab;
           tabs.appendChild(tab);
         });
-        if (seasons.length) showSeason(seasons[0]);
+
+        // Geri dönüldüğünde en son izlenen bölümü hatırla: o sezonu aç + satırı odakla.
+        let lastSeason = seasons[0]; let lastEpId: string | null = null; let lastTs = -1;
+        for (const sn of seasons) {
+          for (const ep of episodes[sn] || []) {
+            const h = History.get(parseInt(ep.id, 10), 'series');
+            if (h && h.timestamp > lastTs) { lastTs = h.timestamp; lastSeason = sn; lastEpId = ep.id; }
+          }
+        }
+        if (seasons.length) {
+          activateSeason(lastSeason);
+          if (lastEpId != null) {
+            requestAnimationFrame(() => {
+              const row = epList.querySelector<HTMLElement>(`[data-ep="${lastEpId}"]`);
+              if (row) { row.scrollIntoView({ block: 'center' }); row.focus(); }
+            });
+          }
+        }
       } catch {
         plot.textContent = t('error_fetch_details');
       }

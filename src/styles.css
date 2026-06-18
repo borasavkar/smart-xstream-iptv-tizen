@@ -143,8 +143,11 @@ button[disabled] { opacity: .6; cursor: default; }
 .poster-img {
   width: 280px; height: 158px; border-radius: 12px;
   background-color: #11202E; background-size: cover; background-position: center;
-  border: 3px solid transparent;
+  border: 3px solid transparent; position: relative;
 }
+/* İzleme göstergesi — yarım bırakılan medyanın altında ne kadar izlendiği. */
+.poster-prog { position: absolute; left: 8px; right: 8px; bottom: 8px; height: 6px; border-radius: 3px; background: rgba(0,0,0,.55); overflow: hidden; }
+.poster-prog-fill { height: 100%; background: var(--neon-pink); border-radius: 3px; }
 .poster-img--empty { background: linear-gradient(135deg, #13283C, #0B1A2F); }
 .poster-title {
   font-size: 20px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.25;

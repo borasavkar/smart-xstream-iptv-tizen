@@ -126,8 +126,10 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
         setStatus(s);
         if (s === 'playing') { paused = false; setPlayGlyph(); onPlaying(); }
         if (s === 'paused') { paused = true; setPlayGlyph(); }
-        // Bölüm gerçekten bittiğinde (kullanıcı kartı kapatmadıysa) sıradakine geç.
-        if (s === 'ended' && isSeries && hasNextEpisode() && !nextEpDismissed) playNextEpisode();
+        // Bölüm gerçekten bittiğinde sıradakine geç. AVPlay'in onstreamcompleted
+        // callback'i İÇİNDEN close/open yapmak re-entrancy yaratıp videoyu siyah
+        // bırakıyor (ses gelir, görüntü gelmez) → setTimeout ile callback dışına al.
+        if (s === 'ended' && isSeries && hasNextEpisode() && !nextEpDismissed) window.setTimeout(() => playNextEpisode(), 400);
       },
       onTime: (cur, dur) => {
         durMs = dur;
@@ -373,6 +375,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     if (!profile) { flash('Profil bulunamadı'); return; }
     prefsApplied = false; prefTries = 0; resumed = false; paused = false; setPlayGlyph();
     clearExternalSubtitle(); // yeni içerik/bölüm → eski dış altyazıyı bırak (tercih varsa yeniden aranır)
+    if (tracks) epgEl.textContent = name; // üst barda medya adı (kontrollerle birlikte geçici görünür)
     const url = buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId, type: p.type, extension, directUrl: directUrl ?? p.directUrl });
     document.body.classList.add('playing');
     player.play({ url });

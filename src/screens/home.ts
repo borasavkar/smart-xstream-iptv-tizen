@@ -157,7 +157,7 @@ export function homeScreen(): Screen {
 
       const latest: PosterItem[] = [...newestMovies.map(moviePoster), ...newestSeries.map(seriesPoster)];
       const favPosters: PosterItem[] = favs.map((f) => ({ id: f.streamId, name: f.name, image: f.image, type: f.streamType === 'vod' ? 'movie' : f.streamType }));
-      const continuePosters: PosterItem[] = History.recentUnfinished().map((h) => ({ id: h.streamId, name: h.name || '', image: h.image, type: h.streamType === 'vod' ? 'movie' : 'series' }));
+      const continuePosters: PosterItem[] = History.recentUnfinished().map((h) => ({ id: h.streamId, name: h.name || '', image: h.image, type: h.streamType === 'vod' ? 'movie' : 'series', progress: h.maxDuration > 0 ? h.lastPosition / h.maxDuration : undefined }));
 
       rails.innerHTML = '';
       appendRail(t('my_favorites'), 'c-green', favPosters);
