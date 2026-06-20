@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets"
-        id="http://bybora.com/smartxtream" version="1.0.3" viewmodes="maximized">
+        id="http://bybora.com/smartxtream" version="1.0.4" viewmodes="maximized">
     <!-- package id = 10 alphanumeric chars; keep stable across builds/cert -->
     <tizen:application id="SmrtXtrm01.SmartXtream" package="SmrtXtrm01" required_version="4.0"/>
 

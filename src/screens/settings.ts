@@ -85,26 +85,8 @@ export function settingsScreen(): Screen {
     };
     const loginBtn = pill(t('os_login'), false, doLogin);
 
-    // TV klavyesi "Bitti"/Enter ile sıradaki alana geç (profil formuyla aynı):
-    // metin kutusunda SAĞ ok imleci taşıdığından, alanlar arası geçiş bu tuşla olur.
-    // Odak blur ile kapatılıp gecikmeyle taşınır ki SmartThings klavyesi yeniden bağlansın.
-    const fields = [user, pass];
-    const typed = new Set<HTMLInputElement>();
-    fields.forEach((inp, idx) => {
-      inp.addEventListener('focus', () => typed.delete(inp));
-      inp.addEventListener('input', () => typed.add(inp));
-      inp.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.keyCode !== 65376 && e.keyCode !== 13) return;
-        if (e.keyCode === 13 && !typed.has(inp)) return;
-        e.preventDefault(); e.stopPropagation();
-        inp.blur();
-        const next: HTMLElement = fields[idx + 1] ?? loginBtn;
-        window.setTimeout(() => {
-          next.focus();
-          if (next instanceof HTMLInputElement) { const end = next.value.length; try { next.setSelectionRange(end, end); } catch { /* */ } }
-        }, 400);
-      });
-    });
+    // Otomatik alan-geçişi yok (profil formuyla aynı): "Bitti" deyince odak yerinde
+    // kalır, kullanıcı yön/OK tuşlarıyla sıradaki alana geçer → klavye taze açılır.
 
     return el('section', { class: 'settings-section' }, [
       el('h2', { class: 'settings-h', text: t('os_account') }),

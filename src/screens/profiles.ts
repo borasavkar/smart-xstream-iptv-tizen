@@ -96,36 +96,10 @@ export function profilesScreen(): Screen {
     ]);
     form.addEventListener('submit', (e: Event) => { e.preventDefault(); });
 
-    // Tizen "Bitti" (65376) veya Enter (13): sıradaki alana, son alandan Kaydet'e geç.
-    // Mevcut alan önce blur ile TAMAMEN kapatılır ve odak gecikmeyle taşınır: TV'nin
-    // klavye oturumu bitip yeni alan için sıfırdan açılsın ki SmartThings telefon
-    // klavyesi de yeni oturuma tekrar bağlanabilsin (kısa gecikme + blur'suz geçişte
-    // panel hiç kapanmadığından telefon "yeni alan" sinyali alamıyor).
-    // Kumandanın OK tuşu da 13 gönderir; bu yüzden 13 yalnızca alana odaklandıktan
-    // sonra bir şey yazılmış/yapıştırılmışsa ilerletir — yazılmamışsa native akışa
-    // bırakılır ki OK, alanın klavyesini açabilsin. IME "Bitti" (65376) her zaman ilerletir.
-    const IME_REOPEN_DELAY_MS = 400;
-    const typed = new Set<HTMLInputElement>();
-    const formFields = [nameFld.inp, userFld.inp, passFld.inp, urlFld.inp];
-    formFields.forEach((inp, idx) => {
-      inp.addEventListener('focus', () => { typed.delete(inp); });
-      inp.addEventListener('input', () => { typed.add(inp); });
-      inp.addEventListener('keydown', (e: KeyboardEvent) => {
-        if (e.keyCode !== 65376 && e.keyCode !== 13) return;
-        if (e.keyCode === 13 && !typed.has(inp)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        inp.blur();
-        const nextTarget = formFields[idx + 1] ?? save;
-        window.setTimeout(() => {
-          nextTarget.focus();
-          if (nextTarget instanceof HTMLInputElement) {
-            const end = nextTarget.value.length;
-            try { nextTarget.setSelectionRange(end, end); } catch { /* tüm input türleri desteklemez */ }
-          }
-        }, IME_REOPEN_DELAY_MS);
-      });
-    });
+    // NOT: Otomatik alan-geçişi BİLEREK yok. TV/SmartThings klavyesinde "Bitti"
+    // deyince odak yerinde kalır (klavye kapanır); kullanıcı kumandanın yön/OK
+    // tuşlarıyla bir sonraki alana geçer. Böylece yeni alana gelip OK'e basınca
+    // SmartThings klavyesi taze açılır — otomatik geçiş bu oturumu bozuyordu.
 
     if (editing) {
       // Two-tap confirm so a saved profile is never deleted by accident.
