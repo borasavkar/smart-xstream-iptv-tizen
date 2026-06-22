@@ -27,6 +27,7 @@ interface PlayerParams {
   streamId: number; type: StreamType; extension?: string; name?: string; directUrl?: string;
   image?: string; categoryId?: string; channels?: ChannelLite[]; index?: number;
   episodes?: EpisodeLite[]; // dizilerde "sıradaki bölüm" için sezon bölüm listesi
+  forceStart?: boolean;     // "Baştan Başlat" → kayıtlı konumdan devam etme, sıfırdan oynat
 }
 
 const A3TO2: Record<string, string> = { tur: 'tr', eng: 'en', ger: 'de', deu: 'de', fra: 'fr', fre: 'fr', rus: 'ru', ara: 'ar', spa: 'es', ita: 'it', por: 'pt', dut: 'nl', pol: 'pl' };
@@ -115,8 +116,11 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   let extCues: Cue[] = [], extActive = false, extBusy = false; // internetten indirilen altyazı
   let zone: HTMLElement[] = [], zoneIdx = 0;
 
-  if (tracks) { const prev = History.get(streamId, p.type); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
-  const save = (cur: number, dur: number, fin: boolean): void => History.record({ streamId, streamType: p.type, categoryId: p.categoryId, name, image: p.image, lastPosition: cur, maxDuration: dur, isFinished: fin });
+  // Geçmiş anahtarı favType ile tutulur (film → 'vod', dizi → 'series'): devam rafı,
+  // poster ilerleme çubuğu ve öneri motoru hep 'vod' okuduğu için p.type ('movie')
+  // kullanmak filmleri bu özelliklerin DIŞINDA bırakıyordu (kaldığın yer görünmüyordu).
+  if (tracks && !p.forceStart) { const prev = History.get(streamId, favType); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
+  const save = (cur: number, dur: number, fin: boolean): void => History.record({ streamId, streamType: favType, categoryId: p.categoryId, name, image: p.image, lastPosition: cur, maxDuration: dur, isFinished: fin });
 
   const player = new AVPlayer(
     document.getElementById('av-player'),

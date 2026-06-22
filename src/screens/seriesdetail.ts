@@ -48,10 +48,20 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
   const epLabel = (ep: Episode): string => `${ep.episode_num ? ep.episode_num + '. ' : ''}${ep.title || t('text_episode')}`;
 
   function episodeRow(ep: Episode, list: Episode[], idx: number): HTMLElement {
-    const watched = History.get(parseInt(ep.id, 10), 'series')?.isFinished === true;
+    const h = History.get(parseInt(ep.id, 10), 'series');
+    const watched = h?.isFinished === true;
     const label = epLabel(ep);
     const children: Array<Node | string> = [el('span', { class: 'ep-label', text: label })];
     if (watched) children.push(el('span', { class: 'ep-watched', text: '✔' }));
+    // Yarım bırakılan bölüm: kaldığın yeri gösteren ince ilerleme çubuğu (satırın altında).
+    else if (h && h.maxDuration > 0 && h.lastPosition > 0) {
+      const frac = h.lastPosition / h.maxDuration;
+      if (frac > 0.02 && frac < 0.98) {
+        const fill = el('div', { class: 'ep-prog-fill' });
+        fill.style.width = Math.round(frac * 100) + '%';
+        children.push(el('div', { class: 'ep-prog' }, [fill]));
+      }
+    }
     return el('button', {
       class: 'list-row ep-row' + (watched ? ' watched' : ''), focusable: true,
       attrs: { 'data-ep': ep.id },

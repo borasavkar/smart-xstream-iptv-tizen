@@ -4,6 +4,7 @@ import { el } from '../ui/dom';
 import { screenHeader } from '../ui/header';
 import { getClient } from '../app/session';
 import { Favorites } from '../storage/favorites';
+import { History } from '../storage/history';
 import { ICONS } from '../ui/icons';
 import { t } from '../i18n/strings';
 import { nav } from '../app/nav';
@@ -11,6 +12,12 @@ import type { Screen } from '../app/router';
 
 function setBg(node: HTMLElement, url?: string): void {
   if (url) node.style.backgroundImage = `url("${url.replace(/"/g, '%22')}")`;
+}
+
+function fmtTime(ms: number): string {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+  return (h ? h + ':' + String(m).padStart(2, '0') : String(m)) + ':' + String(sec).padStart(2, '0');
 }
 
 export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
@@ -33,6 +40,28 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
     attrs: { 'data-initial-focus': '' },
     onClick: () => nav.go('player', { type: 'movie', streamId, extension: ext, name, directUrl, image, categoryId }),
   });
+  // "Baştan Başlat" — kayıtlı konumu yok say, sıfırdan oynat (yalnız yarım kalan filmde görünür).
+  const startOver = el('button', {
+    class: 'btn big start-over', focusable: true, text: t('start_over'),
+    onClick: () => nav.go('player', { type: 'movie', streamId, extension: ext, name, directUrl, image, categoryId, forceStart: true }),
+  });
+  startOver.style.display = 'none';
+  // Kaldığın yer göstergesi: yarım bırakılan filmde ne kadar izlendiğini gösteren çubuk.
+  const resumeFill = el('div', { class: 'detail-prog-fill' });
+  const resumeBar = el('div', { class: 'detail-prog' }, [resumeFill]);
+  resumeBar.style.display = 'none';
+
+  function applyResumeState(): void {
+    const h = History.get(streamId, 'vod');
+    if (!h || h.isFinished || h.lastPosition <= 30000) return;
+    watch.textContent = `${t('resume_watch')}  ·  ${fmtTime(h.lastPosition)}`;
+    startOver.style.display = '';
+    if (h.maxDuration > 0) {
+      resumeFill.style.width = Math.min(100, (h.lastPosition / h.maxDuration) * 100) + '%';
+      resumeBar.style.display = '';
+    }
+  }
+
   const fav = el('button', { class: 'icon-action', focusable: true });
 
   function renderFav(): void { fav.innerHTML = ICONS.heart(Favorites.isFavorite(streamId, 'vod') ? '#FF0099' : '#90A4AE'); }
@@ -50,7 +79,8 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
       poster,
       el('div', { class: 'detail-info' }, [
         title, meta, rating,
-        el('div', { class: 'detail-actions' }, [watch, fav]),
+        el('div', { class: 'detail-actions' }, [watch, startOver, fav]),
+        resumeBar,
         plot, credits,
       ]),
     ]),
@@ -59,6 +89,7 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
   return {
     el: root,
     async onMount() {
+      applyResumeState(); // geçmiş yerel — kaldığın yeri ağ beklemeden hemen göster
       try {
         const res = await getClient().getVodInfo(streamId);
         const info = res.info;

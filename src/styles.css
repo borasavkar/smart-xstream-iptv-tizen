@@ -150,8 +150,15 @@ button[disabled] { opacity: .6; cursor: default; }
 .poster-prog-fill { height: 100%; background: var(--neon-pink); border-radius: 3px; }
 .poster-img--empty { background: linear-gradient(135deg, #13283C, #0B1A2F); }
 .poster-title {
-  font-size: 20px; font-weight: 700; color: var(--text); text-align: center; line-height: 1.25;
-  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  /* Başlık her zaman poster genişliğinde (280px) kalır → komşu posterin üstüne
+     taşmaz (asıl "üst üste binme" hatasının kökü buydu: -webkit-box başlık eski
+     Tizen WebKit'inde içeriğe göre genişliyordu). Sabit 2-satır yükseklik + normal
+     sarma + overflow:hidden, hem eski Tizen hem modern Chromium'da deterministik
+     2 satıra kırpar (-webkit-line-clamp her iki motorda da güvenilmez davrandı). */
+  width: 100%; max-width: 100%; box-sizing: border-box;
+  font-size: 20px; font-weight: 700; color: var(--text); text-align: center;
+  line-height: 1.25; height: 2.5em; overflow: hidden;
+  white-space: normal; word-break: break-word;
 }
 .poster:focus { transform: scale(1.07); box-shadow: none; }
 .poster:focus .poster-img { border-color: var(--neon-blue); box-shadow: 0 0 0 2px rgba(0,240,255,.5), 0 0 26px rgba(0,240,255,.45); }
@@ -252,6 +259,11 @@ button[disabled] { opacity: .6; cursor: default; }
 .detail-meta { font-size: 30px; color: var(--text-2); }
 .detail-rating { font-size: 30px; color: var(--neon-green); font-weight: 700; }
 .detail-info .btn.primary { align-self: flex-start; margin: 6px 0; }
+/* "Baştan Başlat" ikincil düğmesi + kaldığın yer çubuğu (yarım kalan film). */
+.start-over { background: var(--glass); border: 1.5px solid var(--glass-border); color: var(--text); }
+.start-over:focus { border-color: var(--neon-blue); box-shadow: 0 0 0 3px rgba(0,240,255,.4), 0 0 22px rgba(0,240,255,.35); transform: scale(1.04); }
+.detail-prog { width: 520px; max-width: 100%; height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; align-self: flex-start; }
+.detail-prog-fill { height: 100%; background: var(--neon-pink); border-radius: 4px; }
 .detail-plot { font-size: 30px; line-height: 1.5; color: #D6E2EE; max-width: 1240px; }
 .detail-credits { display: flex; flex-direction: column; gap: 10px; font-size: 28px; color: var(--text-2); }
 .credit .lbl { color: var(--text); font-weight: 700; }
@@ -352,10 +364,13 @@ button[disabled] { opacity: .6; cursor: default; }
 .icon-action { width: 64px; height: 64px; flex: none; padding: 14px; border-radius: 50%; background: var(--glass); border: 1.5px solid var(--glass-border); }
 .icon-action svg { width: 100%; height: 100%; }
 .icon-action:focus { border-color: var(--neon-pink); box-shadow: 0 0 0 3px rgba(255,0,153,.4), 0 0 22px rgba(255,0,153,.35); transform: scale(1.08); }
-.ep-row { display: flex; align-items: center; justify-content: space-between; }
+.ep-row { display: flex; align-items: center; justify-content: space-between; position: relative; }
 .ep-row.watched { opacity: .65; }
 .ep-label { flex: 1; }
 .ep-watched { color: var(--neon-green); font-weight: 800; margin-left: 16px; }
+/* Yarım bırakılan bölümde kaldığın yeri gösteren ince çubuk (satırın altında). */
+.ep-prog { position: absolute; left: 26px; right: 26px; bottom: 8px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; }
+.ep-prog-fill { height: 100%; background: var(--neon-pink); border-radius: 3px; }
 
 /* subscription / paywall */
 .subscription { display: flex; align-items: center; justify-content: center; }
