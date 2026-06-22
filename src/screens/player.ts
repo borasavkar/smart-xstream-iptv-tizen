@@ -153,7 +153,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
         }
         if (tracks && cur > 0) { const fin = dur > 0 && cur / dur > 0.95; const now = Date.now(); if (fin || now - lastSaved > 5000) { lastSaved = now; save(cur, dur, fin); } }
         // Son NEAR_END_MS içine girince "Sıradaki Bölüm" kartını göster; geri sarılırsa gizle.
-        if (isSeries && hasNextEpisode() && durMs > 60000) {
+        if (isSeries && hasNextEpisode() && durMs > NEXT_EP_NEAR_END_MS + 30000) {
           const remaining = durMs - curMs;
           if (remaining > 0 && remaining <= NEXT_EP_NEAR_END_MS) showNextEp();
           else if (nextEpVisible && remaining > NEXT_EP_NEAR_END_MS + 5000) hideNextEp();
@@ -263,9 +263,11 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   clearInterval(hudTimer); hudTimer = window.setInterval(refreshHud, 1000);
   if (!menuOpen) {
     const ae = document.activeElement as HTMLElement | null;
-    // Eğer odak halihazırda oynatıcı kontrollerinin içinde değilse oynat butonuna odaklan
+    // Odak kontrollerin içinde değilse: kart açıksa "Sonraki Bölüm" düğmesinde tut,
+    // değilse oynat butonuna odaklan.
     if (!ae || !controls.contains(ae)) {
-      requestAnimationFrame(() => playBtn.focus());
+      const target = nextEpVisible ? nextEpBtn : playBtn;
+      requestAnimationFrame(() => target.focus());
     }
   }
   resetHide();
@@ -393,7 +395,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   }
 
   // ---- Sıradaki Bölüm ----
-  const NEXT_EP_NEAR_END_MS = 40000; // bölümün son 40 saniyesinde kart belirir
+  const NEXT_EP_NEAR_END_MS = 60000; // bölümün son 60 saniyesinde kart belirir (uzun jenerik/oyuncu ekranları için)
   function hasNextEpisode(): boolean { return isSeries && index + 1 < episodes.length; }
   function showNextEp(): void {
     if (nextEpVisible || nextEpDismissed || menuOpen || seeking || !hasNextEpisode()) return;
@@ -401,8 +403,9 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     const next = episodes[index + 1];
     nextEpName.textContent = next.name || t('text_episode');
     nextEpCard.classList.add('show');
-    // Kullanıcı pasif izliyorsa (kontroller gizli) odağı butona al ki OK doğrudan geçsin.
-    if (!controlsVisible()) requestAnimationFrame(() => nextEpBtn.focus());
+    // Kart açılır açılmaz "Sonraki Bölüm" düğmesini odakla ki OK doğrudan bir sonraki
+    // bölüme geçsin (kontroller görünür olsa bile).
+    requestAnimationFrame(() => nextEpBtn.focus());
   }
   function hideNextEp(): void { nextEpVisible = false; nextEpCard.classList.remove('show'); }
   function dismissNextEp(): void { nextEpDismissed = true; hideNextEp(); }
