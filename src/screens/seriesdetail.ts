@@ -18,7 +18,8 @@ function setBg(node: HTMLElement, url?: string): void {
 export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen {
   const seriesId = Number(params.seriesId);
   let name = String(params.name ?? '');
-  let cover: string | undefined;
+  // Poster görselini başlangıç kapağı yap → afiş hemen görünür, favori boş kalmaz.
+  let cover: string | undefined = (params.image as string | undefined) || undefined;
 
   const backdrop = el('div', { class: 'detail-backdrop' });
   const poster = el('div', { class: 'detail-poster' });
@@ -84,12 +85,14 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
   return {
     el: root,
     async onMount() {
+      setBg(poster, cover);   // poster görselini hemen göster (yükleme beklemeden)
+      setBg(backdrop, cover);
       try {
         const res = await getClient().getSeriesInfo(seriesId);
         const i = res.info;
         const episodes = res.episodes || {};
         name = i?.name || name;
-        cover = i?.cover;
+        cover = i?.cover || cover; // API kapak döndürmezse poster görselini koru
         title.textContent = name;
         setBg(poster, cover);
         setBg(backdrop, cover);

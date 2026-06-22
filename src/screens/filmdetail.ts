@@ -25,7 +25,8 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
   let name = String(params.name ?? '');
   let ext = 'mp4';
   let directUrl: string | undefined;
-  let image: string | undefined;
+  // Poster görselini başlangıç afişi yap → favori boş kalmaz, afiş hemen görünür.
+  let image: string | undefined = (params.image as string | undefined) || undefined;
   let categoryId: string | undefined;
 
   const backdrop = el('div', { class: 'detail-backdrop' });
@@ -90,6 +91,8 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
     el: root,
     async onMount() {
       applyResumeState(); // geçmiş yerel — kaldığın yeri ağ beklemeden hemen göster
+      setBg(poster, image);   // poster görselini hemen göster (yükleme beklemeden)
+      setBg(backdrop, image);
       try {
         const res = await getClient().getVodInfo(streamId);
         const info = res.info;
@@ -97,7 +100,7 @@ export function filmDetailScreen(params: Record<string, unknown> = {}): Screen {
         name = info?.name || name;
         ext = md?.container_extension || 'mp4';
         directUrl = md?.direct_source;
-        image = info?.movie_image;
+        image = info?.movie_image || image; // API görsel döndürmezse poster görselini koru
         categoryId = md?.category_id;
 
         title.textContent = name;
