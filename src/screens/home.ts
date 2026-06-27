@@ -156,14 +156,9 @@ export function homeScreen(): Screen {
       if (recS.length === 0) recS = shuffle(safeSeries).slice(0, 12);
 
       const latest: PosterItem[] = [...newestMovies.map(moviePoster), ...newestSeries.map(seriesPoster)];
-      // Favori kapağı: kayıtlı görsel yoksa (eski favoriler görselsiz eklenmiş olabilir)
-      // yüklü katalogdan id ile eşleyip kapağı bul → boş poster yerine afiş görünür.
-      const movieImg = new Map(movies.map((m) => [m.stream_id, m.stream_icon]));
-      const seriesImg = new Map(series.map((s) => [s.series_id, s.cover || s.stream_icon]));
-      const favImage = (f: { streamId: number; streamType: string; image?: string }): string | undefined =>
-        f.image || (f.streamType === 'series' ? seriesImg.get(f.streamId) : f.streamType === 'vod' ? movieImg.get(f.streamId) : undefined);
-      const favPosters: PosterItem[] = favs.map((f) => ({ id: f.streamId, name: f.name, image: favImage(f), type: f.streamType === 'vod' ? 'movie' : f.streamType }));
-      const continuePosters: PosterItem[] = History.recentUnfinished().map((h) => ({ id: h.streamId, name: h.name || '', image: h.image, type: h.streamType === 'vod' ? 'movie' : 'series', progress: h.maxDuration > 0 ? h.lastPosition / h.maxDuration : undefined }));
+      const favPosters: PosterItem[] = favs.map((f) => ({ id: f.streamId, name: f.name, image: f.image, type: f.streamType === 'vod' ? 'movie' : f.streamType }));
+      // Dizide poster, BÖLÜM değil ANA DİZİ id'siyle açılmalı (yoksa seriesdetail boş gelir).
+      const continuePosters: PosterItem[] = History.recentUnfinished().map((h) => ({ id: h.streamType === 'series' ? (h.parentId ?? h.streamId) : h.streamId, name: h.name || '', image: h.image, type: h.streamType === 'vod' ? 'movie' : 'series', progress: h.maxDuration > 0 ? h.lastPosition / h.maxDuration : undefined }));
 
       rails.innerHTML = '';
       appendRail(t('my_favorites'), 'c-green', favPosters);

@@ -27,7 +27,7 @@ interface PlayerParams {
   streamId: number; type: StreamType; extension?: string; name?: string; directUrl?: string;
   image?: string; categoryId?: string; channels?: ChannelLite[]; index?: number;
   episodes?: EpisodeLite[]; // dizilerde "sıradaki bölüm" için sezon bölüm listesi
-  forceStart?: boolean;     // "Baştan Başlat" → kayıtlı konumdan devam etme, sıfırdan oynat
+  seriesId?: number;        // dizide ana dizi id'si (geçmiş → "izlemeye devam et" doğru yönlensin)
 }
 
 const A3TO2: Record<string, string> = { tur: 'tr', eng: 'en', ger: 'de', deu: 'de', fra: 'fr', fre: 'fr', rus: 'ru', ara: 'ar', spa: 'es', ita: 'it', por: 'pt', dut: 'nl', pol: 'pl' };
@@ -116,11 +116,10 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   let extCues: Cue[] = [], extActive = false, extBusy = false; // internetten indirilen altyazı
   let zone: HTMLElement[] = [], zoneIdx = 0;
 
-  // Geçmiş anahtarı favType ile tutulur (film → 'vod', dizi → 'series'): devam rafı,
-  // poster ilerleme çubuğu ve öneri motoru hep 'vod' okuduğu için p.type ('movie')
-  // kullanmak filmleri bu özelliklerin DIŞINDA bırakıyordu (kaldığın yer görünmüyordu).
-  if (tracks && !p.forceStart) { const prev = History.get(streamId, favType); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
-  const save = (cur: number, dur: number, fin: boolean): void => History.record({ streamId, streamType: favType, categoryId: p.categoryId, name, image: p.image, lastPosition: cur, maxDuration: dur, isFinished: fin });
+  // Geçmiş tipi: film → 'vod' (favoriler/öneriler/"devam et" hep 'vod' bekler).
+  const histType = p.type === 'movie' ? 'vod' : p.type;
+  if (tracks) { const prev = History.get(streamId, histType); if (prev && !prev.isFinished && prev.lastPosition > 30000) resumeMs = prev.lastPosition; }
+  const save = (cur: number, dur: number, fin: boolean): void => History.record({ streamId, streamType: histType, parentId: p.seriesId, categoryId: p.categoryId, name, image: p.image, lastPosition: cur, maxDuration: dur, isFinished: fin });
 
   const player = new AVPlayer(
     document.getElementById('av-player'),
@@ -153,7 +152,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
         }
         if (tracks && cur > 0) { const fin = dur > 0 && cur / dur > 0.95; const now = Date.now(); if (fin || now - lastSaved > 5000) { lastSaved = now; save(cur, dur, fin); } }
         // Son NEAR_END_MS içine girince "Sıradaki Bölüm" kartını göster; geri sarılırsa gizle.
-        if (isSeries && hasNextEpisode() && durMs > NEXT_EP_NEAR_END_MS + 30000) {
+        if (isSeries && hasNextEpisode() && durMs > 60000) {
           const remaining = durMs - curMs;
           if (remaining > 0 && remaining <= NEXT_EP_NEAR_END_MS) showNextEp();
           else if (nextEpVisible && remaining > NEXT_EP_NEAR_END_MS + 5000) hideNextEp();
@@ -263,11 +262,9 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   clearInterval(hudTimer); hudTimer = window.setInterval(refreshHud, 1000);
   if (!menuOpen) {
     const ae = document.activeElement as HTMLElement | null;
-    // Odak kontrollerin içinde değilse: kart açıksa "Sonraki Bölüm" düğmesinde tut,
-    // değilse oynat butonuna odaklan.
+    // Eğer odak halihazırda oynatıcı kontrollerinin içinde değilse oynat butonuna odaklan
     if (!ae || !controls.contains(ae)) {
-      const target = nextEpVisible ? nextEpBtn : playBtn;
-      requestAnimationFrame(() => target.focus());
+      requestAnimationFrame(() => playBtn.focus());
     }
   }
   resetHide();
@@ -395,7 +392,7 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
   }
 
   // ---- Sıradaki Bölüm ----
-  const NEXT_EP_NEAR_END_MS = 60000; // bölümün son 60 saniyesinde kart belirir (uzun jenerik/oyuncu ekranları için)
+  const NEXT_EP_NEAR_END_MS = 40000; // bölümün son 40 saniyesinde kart belirir
   function hasNextEpisode(): boolean { return isSeries && index + 1 < episodes.length; }
   function showNextEp(): void {
     if (nextEpVisible || nextEpDismissed || menuOpen || seeking || !hasNextEpisode()) return;
@@ -403,9 +400,8 @@ export function playerScreen(params: Record<string, unknown> = {}): Screen {
     const next = episodes[index + 1];
     nextEpName.textContent = next.name || t('text_episode');
     nextEpCard.classList.add('show');
-    // Kart açılır açılmaz "Sonraki Bölüm" düğmesini odakla ki OK doğrudan bir sonraki
-    // bölüme geçsin (kontroller görünür olsa bile).
-    requestAnimationFrame(() => nextEpBtn.focus());
+    // Kullanıcı pasif izliyorsa (kontroller gizli) odağı butona al ki OK doğrudan geçsin.
+    if (!controlsVisible()) requestAnimationFrame(() => nextEpBtn.focus());
   }
   function hideNextEp(): void { nextEpVisible = false; nextEpCard.classList.remove('show'); }
   function dismissNextEp(): void { nextEpDismissed = true; hideNextEp(); }

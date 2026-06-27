@@ -18,8 +18,7 @@ function setBg(node: HTMLElement, url?: string): void {
 export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen {
   const seriesId = Number(params.seriesId);
   let name = String(params.name ?? '');
-  // Poster görselini başlangıç kapağı yap → afiş hemen görünür, favori boş kalmaz.
-  let cover: string | undefined = (params.image as string | undefined) || undefined;
+  let cover: string | undefined;
 
   const backdrop = el('div', { class: 'detail-backdrop' });
   const poster = el('div', { class: 'detail-poster' });
@@ -49,26 +48,16 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
   const epLabel = (ep: Episode): string => `${ep.episode_num ? ep.episode_num + '. ' : ''}${ep.title || t('text_episode')}`;
 
   function episodeRow(ep: Episode, list: Episode[], idx: number): HTMLElement {
-    const h = History.get(parseInt(ep.id, 10), 'series');
-    const watched = h?.isFinished === true;
+    const watched = History.get(parseInt(ep.id, 10), 'series')?.isFinished === true;
     const label = epLabel(ep);
     const children: Array<Node | string> = [el('span', { class: 'ep-label', text: label })];
     if (watched) children.push(el('span', { class: 'ep-watched', text: '✔' }));
-    // Yarım bırakılan bölüm: kaldığın yeri gösteren ince ilerleme çubuğu (satırın altında).
-    else if (h && h.maxDuration > 0 && h.lastPosition > 0) {
-      const frac = h.lastPosition / h.maxDuration;
-      if (frac > 0.02 && frac < 0.98) {
-        const fill = el('div', { class: 'ep-prog-fill' });
-        fill.style.width = Math.round(frac * 100) + '%';
-        children.push(el('div', { class: 'ep-prog' }, [fill]));
-      }
-    }
     return el('button', {
       class: 'list-row ep-row' + (watched ? ' watched' : ''), focusable: true,
       attrs: { 'data-ep': ep.id },
       onClick: () => nav.go('player', {
         type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4',
-        name: `${name} — ${label}`, image: cover, directUrl: ep.direct_source,
+        name: `${name} — ${label}`, image: cover, directUrl: ep.direct_source, seriesId,
         // Tüm sezon bölümlerini + bu bölümün sırasını geçir ki oynatıcı "sıradaki bölüm"e geçebilsin.
         episodes: list.map((e) => ({
           streamId: parseInt(e.id, 10),
@@ -85,14 +74,12 @@ export function seriesDetailScreen(params: Record<string, unknown> = {}): Screen
   return {
     el: root,
     async onMount() {
-      setBg(poster, cover);   // poster görselini hemen göster (yükleme beklemeden)
-      setBg(backdrop, cover);
       try {
         const res = await getClient().getSeriesInfo(seriesId);
         const i = res.info;
         const episodes = res.episodes || {};
         name = i?.name || name;
-        cover = i?.cover || cover; // API kapak döndürmezse poster görselini koru
+        cover = i?.cover;
         title.textContent = name;
         setBg(poster, cover);
         setBg(backdrop, cover);

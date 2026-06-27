@@ -30,7 +30,7 @@ const CARD = { x: 240, y: 135, w: 1440, h: 810 };
 const VIEWPORT = { x: CARD.x, y: CARD.y, w: CARD.w, h: CARD.h };
 
 interface EpisodeLite { streamId: number; name?: string; extension?: string; directUrl?: string; image?: string; }
-interface PlayParams { type: 'movie' | 'series'; streamId: number; extension: string; name: string; image?: string; directUrl?: string; categoryId?: string; episodes?: EpisodeLite[]; index?: number; }
+interface PlayParams { type: 'movie' | 'series'; streamId: number; extension: string; name: string; image?: string; directUrl?: string; categoryId?: string; episodes?: EpisodeLite[]; index?: number; seriesId?: number; }
 
 let dwellTimer = 0;
 let openSeq = 0;          // bayat async yanıtları ayıklamak için jeton
@@ -219,7 +219,7 @@ function openPreview(item: PosterItem, origin: HTMLElement, onOpenDetails: () =>
         if (ep) {
           const cover = info?.cover || item.image;
           const episodes = seasonList.map((e) => ({ streamId: parseInt(e.id, 10), name: `${title.textContent} — S${e.season ?? 1}B${e.episode_num ?? 1}`, extension: e.container_extension || 'mp4', directUrl: e.direct_source, image: cover }));
-          playParams = { type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4', name: `${title.textContent} — S${ep.season ?? 1}B${ep.episode_num ?? 1}`, image: cover, directUrl: ep.direct_source, episodes, index: 0 };
+          playParams = { type: 'series', streamId: parseInt(ep.id, 10), extension: ep.container_extension || 'mp4', name: `${title.textContent} — S${ep.season ?? 1}B${ep.episode_num ?? 1}`, image: cover, directUrl: ep.direct_source, episodes, index: 0, seriesId: item.id };
           if (profile) schedulePlay({ url: buildStreamUrl({ serverUrl: profile.serverUrl, username: profile.username, password: profile.password, streamId: parseInt(ep.id, 10), type: 'series', extension: ep.container_extension, directUrl: ep.direct_source }), viewport: VIEWPORT });
         }
       }

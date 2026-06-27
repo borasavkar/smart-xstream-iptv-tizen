@@ -4,6 +4,7 @@
 export interface Interaction {
   streamId: number;
   streamType: string; // 'live' | 'vod' | 'series'
+  parentId?: number;  // diziler için ana dizi id'si (bölüm streamId'sinden farklı)
   categoryId?: string;
   name?: string;
   image?: string;
@@ -25,6 +26,7 @@ function write(list: Interaction[]): void { localStorage.setItem(KEY, JSON.strin
 export interface RecordInput {
   streamId: number;
   streamType: string;
+  parentId?: number;
   categoryId?: string;
   name?: string;
   image?: string;
@@ -46,6 +48,7 @@ export const History = {
     const rec: Interaction = {
       streamId: input.streamId,
       streamType: input.streamType,
+      parentId: input.parentId ?? prev?.parentId,
       categoryId: input.categoryId ?? prev?.categoryId,
       name: input.name ?? prev?.name,
       image: input.image ?? prev?.image,
